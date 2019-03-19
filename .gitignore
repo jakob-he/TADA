@@ -1,0 +1,4 @@
+#Ignore all the files in data
+data/TAD/*
+data/ENHANCER/*
+data/GENES/*
