@@ -1,6 +1,8 @@
-# standart libraries
+"""Annotate tads with the overlapping genes and enhancers"""
+# standard libraries
 import argparse
-import json
+import pickle
+import pathlib
 
 # own libraries
 from lib.tad import Tad
@@ -19,31 +21,37 @@ def argparser():
                         help='Path to the Enhancer BED file.')
     return parser.parse_args()
 
+
 def run(args):
     # create bed objects from TADS
-    tad_beds = utils.objects_from_file(args.tads,Tad)
-    enhancer_beds = utils.objects_from_file(args.enhancer,Enhancer,column_names=['RANDOM'])
-    gene_beds = utils.objects_from_file(args.genes,Gene,column_names=['ENSEMBLE_ID'])
+    tad_beds = utils.objects_from_file(args.tads, 'TAD')
+    enhancer_beds = utils.objects_from_file(
+        args.enhancer, 'Enhancer', column_names=['RANDOM'])
+    gene_beds = utils.objects_from_file(
+        args.genes, 'Gene', column_names=['ENSEMBLE_ID'])
 
-    #create dict with chromsomes as keys
+    # create dict with chromsomes as keys
     gene_dict = utils.create_chr_dictionary_from_beds(gene_beds)
     enhancer_dict = utils.create_chr_dictionary_from_beds(enhancer_beds)
     tad_dict = utils.create_chr_dictionary_from_beds(tad_beds)
 
-    #Annotate TADs with overlapping enhancer and genes
-    annotated_tads = utils.create_annotated_dict(tad_dict,gene_dict,enhancer_dict)
+    # Annotate TADs with overlapping enhancer and genes
+    annotated_tads = utils.create_annotated_dict(
+        tad_dict, gene_dict, enhancer_dict)
 
-
-
-    return annotated_tad
-
+    return annotated_tads
 
 
 def main():
     # parse input arguments
     args = argparser()
 
-    run(args)
+    annotated_tads = run(args)
+
+    #save object as pickle file
+    with open("annotated_TADs.p", "wb") as output:
+        pickle.dump(annotated_tads, output)
+
 
 if __name__ == '__main__':
     main()
