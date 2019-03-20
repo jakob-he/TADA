@@ -2,7 +2,6 @@
 The Enhancer class is an extension of the Bed class.
 """
 from .bed import Bed
-import pandas as pd
 
 
 class Enhancer(Bed):

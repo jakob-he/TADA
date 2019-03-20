@@ -3,8 +3,6 @@ A basic class to handle elements in BED files. This class serves as a parent cla
 This class assumes that the line passed to the constructor contains at least the following elements in this exact format:
 chr \t  start \t  end
 """
-import pandas as pd
-
 
 class Bed:
     def __init__(self, line, column_names):

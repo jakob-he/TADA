@@ -2,7 +2,6 @@
 The Gene class is an extension of the Bed class.
 """
 from .bed import Bed
-import pandas as pd
 
 
 class Gene(Bed):

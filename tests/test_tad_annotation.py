@@ -23,7 +23,7 @@ class TadAnnotationTest(unittest.TestCase):
         self.assertEqual(len(tad_dict),4,'The conversion to dictionaries is not working!')
 
         # Annotate TADs with overlapping enhancer and genes
-        annotated_tads = utils.create_annotated_dict(tad_dict, gene_dict, enhancer_dict)
+        annotated_tads = utils.create_annotated_tad_dict(tad_dict, gene_dict, enhancer_dict)
 
         self.assertEqual(annotated_tads['chr1'][0].count_genes(),2,f'TAD annotation with genes is not working!')
         self.assertEqual(annotated_tads['chr1'][0].count_enhancer(),2),'TAD annoation with enhancer is not working!'

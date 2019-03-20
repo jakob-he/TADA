@@ -12,5 +12,5 @@ class TestEnhancerLoading(unittest.TestCase):
         enhancer_beds = utils.objects_from_file("tests/test_data/test_enhancer.bed", 'Enhancer', column_names=['ID'])
         self.assertEqual(len(enhancer_beds),3,'Number of read bed entries is incorrect!')
         self.assertEqual(enhancer_beds[0].start,800000,'The first bed entry is not loaded properly!')
-        self.assertEqual(enhancer_beds[1].end,300000,'The second bed entry is not loaded properly!')
+        self.assertEqual(enhancer_beds[1].end,3000000,'The second bed entry is not loaded properly!')
         self.assertEqual(enhancer_beds[1].data['ID'],'18',f'Additonal columns are not recognized!')

@@ -36,7 +36,7 @@ def run(args):
     tad_dict = utils.create_chr_dictionary_from_beds(tad_beds)
 
     # Annotate TADs with overlapping enhancer and genes
-    annotated_tads = utils.create_annotated_dict(
+    annotated_tads = utils.create_annotated_tad_dict(
         tad_dict, gene_dict, enhancer_dict)
 
     return annotated_tads

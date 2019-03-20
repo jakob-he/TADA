@@ -1,6 +1,6 @@
 """Visualize the annotated TADs"""
 
-# standart libraries
+# standard libraries
 import argparse
 import pickle
 import pathlib
