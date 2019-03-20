@@ -7,10 +7,11 @@ import pandas as pd
 
 
 class Bed:
-    def __init__(self, line):
+    def __init__(self, line, column_names):
         """Basic class containing the information from a BED file element.
         Args:
             line: The line of bed file (This is just a string).
+            column_names: Additional columns except chr,start and end in the bed file sorted by appearence. (e.g. gene name)
         Returns:
             A new Bed object.
         """
@@ -18,7 +19,8 @@ class Bed:
         self.chr = self.data[0]
         self.start = int(self.data[1])
         self.end = int(self.data[2])
-        self.data = {}
+        self.data = {column_name: self.data[3 + idx]
+                     for idx, column_name in enumerate(column_names)}
 
     def __eq__(self, other):
         """Objects of this class are equal if the start and end position are equal."""

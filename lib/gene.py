@@ -14,12 +14,7 @@ class Gene(Bed):
         Returns:
             A new Gene object.
         """
-        self.data = line.strip().split('\t')
-        self.chr = self.data[0]
-        self.start = int(self.data[1])
-        self.end = int(self.data[2])
-        self.data = {column_name: self.data[3 + idx]
-                     for idx, column_name in enumerate(column_names)}
+        super().__init__(line,column_names)
 
     def __str__(self):
         """Gene Objects are representated by all the columns entered in the bed file"""
