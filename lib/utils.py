@@ -27,11 +27,11 @@ def objects_from_file(path, cls_string, column_names=[]):
     bed_objects = []
     for line in open_path:
         if not type(line) == str:
-            line = line.strip().decode('utf-8')
-            #handle headers of bed CNV files
-            if line.startswith('#'):
-                column_names = line.split('\t')[3:]
-                continue
+            line = line.decode('utf-8')
+        #handle headers of bed CNV files
+        if line.startswith('#'):
+            column_names = line.strip().split('\t')[3:]
+            continue
         bed_objects.append(bed_class(line, column_names))
 
     open_path.close()
@@ -88,10 +88,10 @@ def create_annotated_tad_dict(tad_dict, gene_dict, enhancer_dict):
     """Annotates every TAD with the overlapping genes and enhancers.
     For each TAD in a chromosome the function iterates through the sorted gene and enhancer lists as long as the
     start position of either the first gene or first enhancer is less than the end position of the TAD.
-    If one of the elements satisfies this condition there are four options:
-        1. The element starts in or before the TAD and ends in the TAD -> Add to TADs elements and remove element from the list.
+    If one of the elements satisfies this condition there are three options:
+        1. The element ends before the TAD -> discard it, since there is no overlapping TAD in the data set.
+        2. The element starts in or before the TAD and ends in the TAD -> Add to TADs elements and remove element from the list.
         2. The element starts in or before the TAD and does not in the TAD -> Add to TAD elements but keep it for other TADs.
-        3. The element does not start before or in the TAD -> Leave the list as it is.
 
     Args:
         tad_dict: A dictionary with chromsomes as keys and the corresponding Tad elements as values.
@@ -136,13 +136,13 @@ def annotate_cnvs(tad_dict, cnv_dict):
     """Finds all TADs overlapping with the CNV, then constructs a new dictionary with the annotated CNVs.
     The function iterates through the TADs one chromsome at a time. For each TAD it checks every CNVs were
     the start position is either less or equal to the TADs start position. If that is the case there are four possiblities:
-        1. The CNV ends before the TAD -> discard it, since there is no overlapping TAD in the data set.
+        1. The CNV ends before the TAD -> this CNV is either not in any of the available TADs or ended in between TADs.
         2. The CNV ends in the TAD but starts before it -> append the TAD to the CNV and move the CNV to the list of annotated CNVs and change boundary_spanning to True.
         3. The CNV ends and starts in the TAD -> append the TAD to the CNV and move the CNV to the list of annotated CNVs.
         4. Tne CNVs starts before the TAD but ends after it -> append the TAD to the CNV, keep it in the CNV dict and change the boundary_spanning attribute to True.
     """
-    # reduce tads to the chromsomes in cnvs
-    tad_dict = reduce_dict(tad_dict, cnv_dict.keys())
+    # reduce the cnvs to chromsomes were tads are available
+    cnv_dict = reduce_dict(cnv_dict,tad_dict.keys())
 
     # create empty list
     annotated_cnvs = []
@@ -155,14 +155,24 @@ def annotate_cnvs(tad_dict, cnv_dict):
                 if cnv_dict[chrom][0].end <= tad.end and cnv_dict[chrom][0].end >= tad.start:
                     if cnv_dict[chrom][0].start < tad.start:
                         cnv_dict[chrom][0].boundary_spanning = True
-                        cnv_dict[chrom][0].tads.append(tad)
-                    else:
-                        cnv_dict[chrom][0].tads.append(tad)
+                    cnv_dict[chrom][0].tads.append(tad)
+                    annotated_cnvs.append(cnv_dict[chrom].pop(0))
                 elif cnv_dict[chrom][0].end > tad.end:
                     cnv_dict[chrom][0].boundary_spanning = True
                     cnv_dict[chrom][0].tads.append(tad)
-                    cnv_queue.append(cnv_dict[chrom][0])
-                annotated_cnvs.append(cnv_dict[chrom].pop(0))
+                    cnv_queue.append(cnv_dict[chrom].pop(0))
+                else:
+                    annotated_cnvs.append(cnv_dict[chrom].pop(0))
             cnv_dict[chrom] = cnv_queue + cnv_dict[chrom]
+        annotated_cnvs.extend(cnv_dict[chrom])
 
     return create_chr_dictionary_from_beds(annotated_cnvs)
+
+
+def getOverlap(interval_a,interval_b):
+    """Returns the overlap of two intervals"""
+    return max(0,min(interval_a[1],interval_b[1])-max(interval_a[0],interval_b[0]))
+
+def getDistance(interval_a,interval_b):
+    """Returns the distance between two intervals"""
+    return max(interval_a[0]-interval_b[1],interval_b[0]-interval_a[1])
