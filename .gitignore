@@ -2,6 +2,8 @@
 data/TAD/*
 data/ENHANCER/*
 data/GENES/*
+data/CNV/*
+data/ANNOTATION/*
 
 #Ignore all .pyc data
 *.pyc

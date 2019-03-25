@@ -21,7 +21,7 @@ class CNV(Bed):
     def __str__(self):
         """CNV Objects are representated by all the columns entered in the bed file"""
         tads = "\n".join([str(tad) for tad in self.tads])
-        return f'{self.chr}\t{self.start}\t{self.end}\nTADS\n{self.tads}'
+        return f'{self.chr}\t{self.start}\t{self.end}\nTADS\n{tads}'
 
     def get_genes(self):
         genes = []
