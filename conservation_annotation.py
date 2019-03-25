@@ -1,7 +1,7 @@
 """This script can be used to annotate Enhancers or any other bed element with PhastCon conservation scores."""
 import pathlib
 import argparse
-import .utils as utils
+from lib import utils
 
 import pyBigWig
 
@@ -15,14 +15,12 @@ def argparser():
 
 
 
-
-
 def main():
     #read input arguments
     args = argparser()
 
     #read bed elements from bedfile
-    beds = utils.objects_from_file(args.bedfile)
+    beds = utils.objects_from_file(args.bedfile,'enhancer')
 
     #open BigWig file
     bw = pyBigWig.open(args.conservation_file)
@@ -33,8 +31,8 @@ def main():
     #save annotated bed elements
     with open(args.output,'w') as output:
         for idx,bed in enumerate(beds):
-            additional_columns = "\t".join(self.data.values())
-            output.write(f'{bed.chr}\t{bed.start}\t{bed.end}\t{additional_columns}\t{conservation_scores[idx]}')
+            additional_columns = "\t".join(bed.data.values())
+            output.write(f'{bed.chr}\t{bed.start}\t{bed.end}\t{additional_columns}\t{",".join([str(score) for score in conservation_scores[idx]])}\n')
 
 
 
