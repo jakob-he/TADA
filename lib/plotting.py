@@ -6,7 +6,7 @@ import seaborn as sns
 
 
 def plot_size_dist(beds, output='./', plot_type='h', save=False):
-    """Plots the size distribution of elements in a bed file
+    """Plots the size distribution of elements in a bed file.
     Args:
         beds: List of bed objects (e.g. genes).
         output: Path were the figure is saved.
@@ -30,6 +30,33 @@ def plot_size_dist(beds, output='./', plot_type='h', save=False):
         plt.savefig(output / 'size_histogram.png')
     else:
         plt.show()
+
+def plot_annotation_dist(beds, annotation, output='./',plot_type='h', save = False):
+    """Plots the distribution of an annotation in the bed file in a box plot.
+    Args:
+        beds: List of bed objects (e.g. genes).
+        annotation: Name of the column which is going to be plotted. (e.g. conservation)
+        output: Path were the figure is saved.
+        plot_type: 'h' for histogram, 'b' for boxplot, 'v' for violinplot
+        save: True if figure should be saved rather than shown directly.
+    """
+    plt.figure()
+    sns.set_style('whitegrid')
+    annotations = [bed.data[annotation] for bed in beds]
+    if plot_type == 'h':
+        ax = sns.distplot(annotations, kde=False)
+    elif plot_type == 'b':
+        ax = sns.boxplot(y=annotations)
+    elif plot_type == 'v':
+        ax = sns.violinplot(y=annotations)
+    ax.set_title(f'Distribution of {annotation}')
+    ax.set_ylabel('Amount')
+    ax.set_xlabel(f'{annotation}')
+    if save:
+        plt.savefig(output / f'{annotation}_distribution.png')
+    else:
+        plt.show()
+
 
 
 def plot_tad_element_dist(tads, output='./', save=False, genes=True, enhancer=True):
