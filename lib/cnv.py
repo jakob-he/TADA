@@ -39,9 +39,9 @@ class CNV(Bed):
         """Calculates the distance and overlap for each gene and enhancer in the same TAD as the CNV"""
         genes = self.get_genes()
         enhancers = self.get_enhancer()
-        self.gene_distances = []
-        self.gene_overlaps = []
         if self.tads:
+            self.gene_distances = []
+            self.gene_overlaps = []
             for gene in genes:
                 gene_overlap = utils.getOverlap([self.start,self.end],[gene.start,gene.end])
                 if gene_overlap == 0:
@@ -62,3 +62,6 @@ class CNV(Bed):
                     enhancer_distance = 0
                 self.enhancer_distances.append(enhancer_distance)
                 self.enhancer_overlaps.append(enhancer_overlap)
+
+            self.enhancer_distances = sorted(self.enhancer_distances)
+            self.gene_distances = sorted(self.gene_distances)
