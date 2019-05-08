@@ -32,7 +32,7 @@ def main():
     with open(args.output,'w') as output:
         for idx,bed in enumerate(beds):
             additional_columns = "\t".join(bed.data.values())
-            output.write(f'{bed.chr}\t{bed.start}\t{bed.end}\t{additional_columns}\t{",".join([str(score) for score in conservation_scores[idx]])}\n')
+            output.write(f'{bed.chr}\t{bed.start}\t{bed.end}{additional_columns}\t{",".join([str(score) for score in conservation_scores[idx]])}\n')
 
 
 

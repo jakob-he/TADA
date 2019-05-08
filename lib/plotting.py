@@ -3,6 +3,8 @@ import numpy as np
 import pathlib
 import matplotlib.pyplot as plt
 import seaborn as sns
+import pathlib
+import pandas as pd
 
 
 def plot_size_dist(beds, output='./', plot_type='h', save=False):
@@ -24,7 +26,6 @@ def plot_size_dist(beds, output='./', plot_type='h', save=False):
         ax = sns.violinplot(y=sizes)
 
     ax.set_title('Size Distribution')
-    ax.set_ylabel('Amount')
     ax.set_xlabel('Size')
     if save:
         plt.savefig(output / 'size_histogram.png')
@@ -42,17 +43,20 @@ def plot_annotation_dist(beds, annotation, output='./',plot_type='h', save = Fal
     """
     plt.figure()
     sns.set_style('whitegrid')
-    annotations = [bed.data[annotation] for bed in beds]
+    annotations = [float(bed.data[annotation]) if bed.data[annotation] != 'None' else 0 for bed in beds]
+    #calculate exact quartiles and other statistics
+    df = pd.DataFrame({annotation:annotations})
     if plot_type == 'h':
         ax = sns.distplot(annotations, kde=False)
     elif plot_type == 'b':
         ax = sns.boxplot(y=annotations)
     elif plot_type == 'v':
         ax = sns.violinplot(y=annotations)
-    ax.set_title(f'Distribution of {annotation}')
-    ax.set_ylabel('Amount')
-    ax.set_xlabel(f'{annotation}')
+    print(df.quantile(0.9))
+    ax.set_title(f'Distribution of {annotation} values')
+    ax.set_ylabel(f'{annotation}')
     if save:
+        output = pathlib.Path(output)
         plt.savefig(output / f'{annotation}_distribution.png')
     else:
         plt.show()

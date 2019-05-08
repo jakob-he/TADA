@@ -1,6 +1,6 @@
 import enum
 
-from . import tad, gene, enhancer, cnv
+from . import tad, gene, enhancer, cnv, bed
 
 
 class BedClass(enum.Enum):
@@ -8,6 +8,7 @@ class BedClass(enum.Enum):
     GENE = enum.auto()
     ENHANCER = enum.auto()
     CNV = enum.auto()
+    BED = enum.auto()
 
     @classmethod
     def from_str(cls, name):
@@ -27,5 +28,7 @@ class BedClass(enum.Enum):
             return enhancer.Enhancer
         elif self == self.CNV:
             return cnv.CNV
+        elif self == self.BED:
+            return bed.Bed
         else:
             raise TypeError(f"Type {self} has no associated class.")
