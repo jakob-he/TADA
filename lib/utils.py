@@ -162,7 +162,7 @@ def create_annotated_tad_dict(tad_dict, gene_dict, enhancer_dict):
 
 
 def annotate_cnvs(tad_dict, cnv_dict):
-    """Finds all TADs overlapping with the CNV, then constructs a new dictionary with the annotated CNVs.
+    """Finds all TADs overlapping with the CNV, then constructs a new chrom dictionary with the annotated CNVs.
     The function iterates through the TADs one chromsome at a time. For each TAD it checks every CNVs were
     the start position is either less or equal to the TADs start position. If that is the case there are four possiblities:
         1. The CNV ends before the TAD -> this CNV is either not in any of the available TADs or ended in between TADs.

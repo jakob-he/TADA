@@ -3,7 +3,7 @@ The CNV class is an extension of the Bed class.
 """
 from .bed import Bed
 from . import utils
-
+import numpy as np
 
 class CNV(Bed):
     def __init__(self, line, column_names):
@@ -32,11 +32,11 @@ class CNV(Bed):
     def get_enhancer(self):
         enhancer = []
         for tad in self.tads:
-            enhancer.extend(tad.enhancer)
+            enhancer.extend(tad.enhancers)
         return enhancer
 
     def calculate_overlap_and_distances(self):
-        """Calculates the distance and overlap for each gene and enhancer in the same TAD as the CNV"""
+        """Calculates the distance and overlap for each gene and enhancer in the same TAD as the CNV. Currenlty modifed for binary overlap."""
         genes = self.get_genes()
         enhancers = self.get_enhancer()
         if self.tads:
@@ -45,9 +45,10 @@ class CNV(Bed):
             for gene in genes:
                 gene_overlap = utils.getOverlap([self.start,self.end],[gene.start,gene.end])
                 if gene_overlap == 0:
-                    gene_distance = utils.getDistance([self.start,self.end],[gene.start,gene.end])
-                else:
                     gene_distance = 0
+                    #gene_distance = utils.getDistance([self.start,self.end],[gene.start,gene.end])
+                else:
+                    gene_distance = 1
                 self.gene_distances.append(gene_distance)
                 self.gene_overlaps.append(gene_overlap)
 
@@ -57,11 +58,21 @@ class CNV(Bed):
             for enhancer in enhancers:
                 enhancer_overlap = utils.getOverlap([self.start,self.end],[enhancer.start,enhancer.end])
                 if enhancer_overlap == 0:
-                    enhancer_distance = utils.getDistance([self.start,self.end],[enhancer.start,enhancer.end])
-                else:
                     enhancer_distance = 0
+                    #enhancer_distance = utils.getDistance([self.start,self.end],[enhancer.start,enhancer.end])
+                else:
+                    enhancer_distance = 1
                 self.enhancer_distances.append(enhancer_distance)
                 self.enhancer_overlaps.append(enhancer_overlap)
 
             self.enhancer_distances = sorted(self.enhancer_distances)
             self.gene_distances = sorted(self.gene_distances)
+        else:
+            self.enhancer_distances = []
+            self.gene_distances = []
+
+    def get_features(self):
+        """Returns features which are either directly derived from the TADs or based on the CNV itself.
+        The out is a numpy boolean feature vector."""
+        features = [any(overlap for overlap in self.gene_distances),any(overlap for overlap in self.enhancer_distances),any(tad.high_pLI for tad in self.tads),any(tad.high_Phastcon for tad in self.tads)]
+        return np.array(features)

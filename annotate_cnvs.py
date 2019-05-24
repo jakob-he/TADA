@@ -1,5 +1,5 @@
 """Load and annotate a set of CNVs"""
-# standard libraries
+#standard libraries
 import argparse
 import pickle
 import pathlib
@@ -7,6 +7,8 @@ import pathlib
 #own libraries
 import lib.utils as utils
 
+#third party libraries
+import pandas as pd
 
 def argparser():
     parser = argparse.ArgumentParser(description="Annotate a set of CNVs.")
@@ -18,13 +20,13 @@ def argparser():
 
 
 def run(args):
-    # load annotated TAD data
+    #load annotated TAD data
     tads = pathlib.Path(args.tads)
     tads = pickle.load(tads.open('rb'))
     output_path = pathlib.Path(args.output)
 
 
-    # load CNVs
+    #load CNVs
     cnvs = utils.objects_from_file(args.cnvs,'CNV')
 
     #create cnv dict
@@ -33,12 +35,14 @@ def run(args):
     #annotate CNVS
     annotated_cnvs = utils.annotate_cnvs(tads,cnvs)
 
-    #save object as pickle file
+    #save raw CNV object as pickle file
     with open(output_path, "wb") as output:
         pickle.dump(annotated_cnvs, output)
 
+
+
 def main():
-    # parse input arguments
+    #parse input arguments
     args = argparser()
 
     run(args)

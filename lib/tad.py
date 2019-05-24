@@ -16,6 +16,7 @@ class Tad(Bed):
         super().__init__(line, column_names)
         self.genes = []
         self.enhancers = []
+        self.annotate()
 
     def __str__(self):
         """An object of the Tad class is representeted by the chromsome, start and end position
@@ -43,6 +44,6 @@ class Tad(Bed):
         return any(phastcon >= 0.6 for phastcon in phastcons)
 
     def annotate(self):
-        """Annotates the TAD with a set of features"""
+        """Annotates the TAD with a set of features."""
         self.high_pLI = self.contains_high_pLI_gene()
         self.high_Phastcon = self.contains_highly_conserved_enhancer()
