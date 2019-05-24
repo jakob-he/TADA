@@ -15,7 +15,7 @@ class Tad(Bed):
         """
         super().__init__(line, column_names)
         self.genes = []
-        self.enhancer = []
+        self.enhancers = []
 
     def __str__(self):
         """An object of the Tad class is representeted by the chromsome, start and end position
@@ -28,4 +28,21 @@ class Tad(Bed):
         return len(self.genes)
 
     def count_enhancer(self):
-        return len(self.enhancer)
+        return len(self.enhancers)
+
+    def contains_high_pLI_gene(self):
+        """Returns True if the TAD contains a gene with pLi greater or equal to 0.9.
+        This requires genes with pLI values in the range (0,1)."""
+        pLIs = [gene.data['pLI'] for gene in self.genes]
+        return any(pLI >= 0.9 for pLI in pLIs)
+
+    def contains_highly_conserved_enhancer(self):
+        """Returns True if the TAD contains an enhancers with Phastcon value greater or equal to 0.6.
+        This is the largest threshold showing significant enrichment of pathogenic variants (GAT)."""
+        phastcons = [enhancer.data['Phastcon'] for enhancer in self.enhancers]
+        return any(phastcon >= 0.6 for phastcon in phastcons)
+
+    def annotate(self):
+        """Annotates the TAD with a set of features"""
+        self.high_pLI = self.contains_high_pLI_gene()
+        self.high_Phastcon = self.contains_highly_conserved_enhancer()

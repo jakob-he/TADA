@@ -27,12 +27,14 @@ def main():
     tads = pathlib.Path(args.tads)
     tads = pickle.load(tads.open('rb'))
 
+    #plot the distribution of pLI values
+
     # plot number of genes and enhancers for chromosome 1
-    plt.figure()
-    ax = plotting.plot_tad_element_dist(tads['chr1'])
-    ax.set_title('Number of overlapping Genes / Enhancer')
-    ax.set_xticklabels(['Genes', 'Enhancer'])
-    plt.show()
+    #plt.figure()
+    #ax = plotting.plot_tad_element_dist(tads['chr1'])
+    #ax.set_title('Number of overlapping Genes / Enhancer')
+    #ax.set_xticklabels(['Genes', 'Enhancer'])
+    #plt.show()
 
     #TODO plot number of genes for all chromsomes
     # plt.figure()

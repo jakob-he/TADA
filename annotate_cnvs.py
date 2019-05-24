@@ -13,6 +13,7 @@ def argparser():
     parser.add_argument('-t', '--tads', default='annotated_TADs.p',
                         help='Path to the pickeled TAD file.')
     parser.add_argument('-c', '--cnvs', help='Path to the CNV file.')
+    parser.add_argument('-o', '--output', default='annotated_CNVS.p', help='Output File.')
     return parser.parse_args()
 
 
@@ -20,6 +21,7 @@ def run(args):
     # load annotated TAD data
     tads = pathlib.Path(args.tads)
     tads = pickle.load(tads.open('rb'))
+    output_path = pathlib.Path(args.output)
 
 
     # load CNVs
@@ -32,7 +34,7 @@ def run(args):
     annotated_cnvs = utils.annotate_cnvs(tads,cnvs)
 
     #save object as pickle file
-    with open("annotated_Eichler_CNVs.p", "wb") as output:
+    with open(output_path, "wb") as output:
         pickle.dump(annotated_cnvs, output)
 
 def main():

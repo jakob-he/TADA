@@ -29,5 +29,6 @@ class Bed:
         return self.start < other.start
 
     def __str__(self):
-        """Bed objects are repsented by their chromsome end and start position"""
-        return f'{self.chr}\t{self.start}\t{self.end}'
+        """Bed Objects are representated by all the columns entered in the bed file"""
+        additional_columns = "\t".join(self.data.values())
+        return f'{self.chr}\t{self.start}\t{self.end}\t{additional_columns}'

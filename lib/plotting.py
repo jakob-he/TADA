@@ -43,18 +43,18 @@ def plot_annotation_dist(beds, annotation, output='./',plot_type='h', save = Fal
     """
     plt.figure()
     sns.set_style('whitegrid')
-    annotations = [float(bed.data[annotation]) if bed.data[annotation] != 'None' else 0 for bed in beds]
+    excpetions = ['None','NA']
+    annotations = [float(bed.data[annotation]) for bed in beds if not bed.data[annotation] in excpetions]
     #calculate exact quartiles and other statistics
     df = pd.DataFrame({annotation:annotations})
     if plot_type == 'h':
-        ax = sns.distplot(annotations, kde=False)
+        ax = sns.distplot(annotations, kde=True)
     elif plot_type == 'b':
         ax = sns.boxplot(y=annotations)
     elif plot_type == 'v':
         ax = sns.violinplot(y=annotations)
-    print(df.quantile(0.9))
     ax.set_title(f'Distribution of {annotation} values')
-    ax.set_ylabel(f'{annotation}')
+    ax.set_xlabel(f'{annotation}')
     if save:
         output = pathlib.Path(output)
         plt.savefig(output / f'{annotation}_distribution.png')

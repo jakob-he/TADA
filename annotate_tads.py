@@ -19,6 +19,7 @@ def argparser():
         '-g', '--genes', default='data/GENE/genes.bed', help='Path to the Gene BED file.')
     parser.add_argument('-e', '--enhancer', default='data/ENHANCER/FANTOM.bed',
                         help='Path to the Enhancer BED file.')
+    parser.add_argument('-o','--output', default='annotated_TADs.p',help='Output file.')
     return parser.parse_args()
 
 
@@ -26,9 +27,9 @@ def run(args):
     # create bed objects from TADS
     tad_beds = utils.objects_from_file(args.tads, 'TAD')
     enhancer_beds = utils.objects_from_file(
-        args.enhancer, 'Enhancer', column_names=['RANDOM'])
+        args.enhancer, 'Enhancer', column_names=['ID','Phastcon'])
     gene_beds = utils.objects_from_file(
-        args.genes, 'Gene', column_names=['ENSEMBLE_ID'])
+        args.genes, 'Gene', column_names=['ID','Gene_name','pLI','LOEUF'])
 
     # create dict with chromsomes as keys
     gene_dict = utils.create_chr_dictionary_from_beds(gene_beds)
@@ -49,7 +50,7 @@ def main():
     annotated_tads = run(args)
 
     #save object as pickle file
-    with open("annotated_TADs.p", "wb") as output:
+    with open(args.output, "wb") as output:
         pickle.dump(annotated_tads, output)
 
 

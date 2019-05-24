@@ -14,8 +14,3 @@ class Enhancer(Bed):
             A new Enhancer object.
         """
         super().__init__(line,column_names)
-
-    def __str__(self):
-        """Enhancer Objects are representated by all the columns entered in the bed file"""
-        additional_columns = "\t".join(self.data.values())
-        return f'{self.chr}\t{self.start}\t{self.end}\t{additional_columns}'

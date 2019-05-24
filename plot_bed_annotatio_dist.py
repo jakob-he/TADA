@@ -21,7 +21,7 @@ def argparser():
 def main():
     #read input arguments
     args = argparser()
-	
+
     #get column names
     column_names = args.columns.split(",")
 
@@ -37,5 +37,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-

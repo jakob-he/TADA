@@ -78,6 +78,35 @@ def is_in(bed_list, reference_bed):
     else:
         return False
 
+def to_bed(bed_elements,output,label=''):
+    """Saves the input as bed file.
+    The input can either be a dict with chromsomes as keys and list of bed elements as items or a list of bed elements.
+    """
+    if type(bed_elements) == list:
+        bedlist_to_bed(bed_elements,output,label)
+    elif type(bed_elements) == dict:
+        chrom_dict_to_bed(bed_elements,output,label)
+    else:
+        print('The input has to be a dictionary or list with Bed elements.')
+
+def bedlist_to_bed(bedlist,output,label):
+    with open(output,'w') as output:
+        for bed in bedlist:
+            output.write(f'{bed.chr}\t{bed.start}\t{bed.end}')
+            if label:
+                output.write(f'\t{label}')
+            output.write('\n')
+
+def chrom_dict_to_bed(chrom_dict,output,label):
+    with open(output,'w') as output:
+        for chrom in chrom_dict:
+            for bed in chrom_dict[chrom]:
+                output.write(f'{bed.chr}\t{bed.start}\t{bed.end}')
+                if label:
+                    output.write(f'\t{label}')
+                output.write('\n')
+
+
 
 def reduce_dict(dictionary, keys):
     """Returns a dictionary containing only the input keys"""
@@ -121,9 +150,9 @@ def create_annotated_tad_dict(tad_dict, gene_dict, enhancer_dict):
                     if enhancer_dict[chrom][0].end < tad.start:
                         enhancer_dict[chrom].pop(0)
                     elif enhancer_dict[chrom][0].end <= tad.end:
-                        tad.enhancer.append(enhancer_dict[chrom].pop(0))
+                        tad.enhancers.append(enhancer_dict[chrom].pop(0))
                     elif enhancer_dict[chrom][0].end > tad.end:
-                        tad.enhancer.append(enhancer_dict[chrom][0])
+                        tad.enhancers.append(enhancer_dict[chrom][0])
                         enhancer_queue.append(enhancer_dict[chrom].pop(0))
 
             enhancer_dict[chrom] = enhancer_queue + enhancer_dict[chrom]
