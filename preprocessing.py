@@ -3,7 +3,12 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder
-from lib.lr import LR
+
+# scikit classifier
+from lib.classifier import Classifier
+
+# tensorflow classifier
+#from lib.lr import LR
 
 #testing libararies
 import argparse
@@ -23,7 +28,7 @@ def create_feature_df(cnv_dict):
     return feature_df
 
 
-def create_stratified_training_and_test_set(cnv_dict_1,cnv_dict_2):
+def create_stratified_training_and_test_set(cnv_dict_1,cnv_dict_2,oneHot=True):
     """Splits the merged feature dataframe of two CNV sets into a training set stratified by label."""
     # create feature dataframes for both cnv dicts
     df_0 = create_feature_df(cnv_dict_1)
@@ -42,19 +47,22 @@ def create_stratified_training_and_test_set(cnv_dict_1,cnv_dict_2):
 
     # define X and y
     X = df_merged.loc[: , df_merged.columns != 'label'].values
-    Y = df_merged['label'].values.reshape(-1,1)
 
-    # One hot encode all features and labels
-    oneHot = OneHotEncoder(categories='auto')
+    if oneHot:
+        Y = df_merged['label'].values.reshape(-1,1)
+        # One hot encode all features and labels
+        oneHot = OneHotEncoder(categories='auto')
 
-    oneHot.fit(X)
-    x = oneHot.transform(X).toarray()
+        oneHot.fit(X)
+        X = oneHot.transform(X).toarray()
 
-    oneHot.fit(Y)
-    y = oneHot.transform(Y).toarray()
+        oneHot.fit(Y)
+        Y = oneHot.transform(Y).toarray()
+    else:
+        Y = df_merged['label'].values
 
     # create training and test set stratified by class labels
-    X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42, stratify=y)
+    X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, random_state=42, stratify=Y)
 
     # create validation and training set
     X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2, random_state=42, stratify=y_train)
@@ -66,8 +74,8 @@ def create_stratified_training_and_test_set(cnv_dict_1,cnv_dict_2):
 def main():
     # parse inputs
     parser = argparse.ArgumentParser()
-    parser.add_argument('-c1','--cnvs1',help='Non pathogenic pickeled CNV set.')
-    parser.add_argument('-c2','--cnvs2',help='Pathogenic pickeled CNV set.')
+    parser.add_argument('-c1','--cnvs1', help='Non pathogenic pickeled CNV set.')
+    parser.add_argument('-c2','--cnvs2', help='Pathogenic pickeled CNV set.')
     args = parser.parse_args()
 
     # unpickle the annotated CNV files
@@ -79,14 +87,13 @@ def main():
 
 
     # create test and training set
-    train_set, val_set, test_set = create_stratified_training_and_test_set(non_patho_cnvs,patho_cnvs)
+    train_set, val_set, test_set = create_stratified_training_and_test_set(non_patho_cnvs,patho_cnvs,oneHot=False)
 
-    lr = LR(train_set,val_set,test_set,0.0005,200)
-    lr.train()
+    lr = Classifier()
+    lr.fit(train_set,test_set)
 
-
-
-
+    #lr = LR(train_set,val_set,test_set,0.0005,200)
+    #lr.train()
 
 
 
