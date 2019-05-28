@@ -73,6 +73,6 @@ class CNV(Bed):
 
     def get_features(self):
         """Returns features which are either directly derived from the TADs or based on the CNV itself.
-        The out is a numpy boolean feature vector."""
+        The output is a numpy boolean feature vector."""
         features = [any(overlap for overlap in self.gene_distances),any(overlap for overlap in self.enhancer_distances),any(tad.high_pLI for tad in self.tads),any(tad.high_Phastcon for tad in self.tads)]
         return np.array(features)

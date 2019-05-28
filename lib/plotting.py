@@ -82,3 +82,17 @@ def plot_tad_element_dist(tads, output='./', save=False, genes=True, enhancer=Tr
     sns.set_style('whitegrid')
     ax = sns.boxplot(x=np.arange(0,length), y=elements)
     return ax
+
+def plot_corr(df):
+    '''Function plots a graphical correlation matrix for each pair of columns in the dataframe.
+
+    Input:
+        df: pandas DataFrame
+        size: vertical and horizontal size of the plot'''
+
+    corr = df.corr()
+    sns.heatmap(corr,
+            xticklabels=corr.columns.values,
+            yticklabels=corr.columns.values)
+    plt.tight_layout()
+    plt.show()

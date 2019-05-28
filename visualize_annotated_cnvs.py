@@ -48,6 +48,7 @@ def main():
 
             #plot the gene_distances
             gene_distances = [np.log10(value) if value!=0 else value for value in gene_distances]
+            print(max(gene_distances))
             sns.kdeplot(gene_distances,label=f'Gene distance {cnv_path.stem} (N={cnv_counter})').set(xlim=(0))
 
             #plot the enhancer_distances
