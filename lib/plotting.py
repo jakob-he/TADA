@@ -1,10 +1,17 @@
 """Functions that can be used to visualize bed files and annotate TADs"""
+# own libaries
+from .classifier import Classifier
+
+# third party libraries
 import numpy as np
 import pathlib
-import matplotlib.pyplot as plt
-import seaborn as sns
 import pathlib
 import pandas as pd
+
+# plotting
+import matplotlib.pyplot as plt
+import seaborn as sns
+
 
 
 def plot_size_dist(beds, output='./', plot_type='h', save=False):
@@ -96,3 +103,19 @@ def plot_corr(df):
             yticklabels=corr.columns.values)
     plt.tight_layout()
     plt.show()
+
+def plot_multiple_roc(classifiers:[Classifier],test_sets,save=False,output=''):
+    """Plots roc curve for multiple classifier."""
+    plt.figure(figsize=(12,10))
+    plt.plot([0, 1], [0, 1], linestyle='--',label='random classification')
+    plt.ylabel('TPR')
+    plt.xlabel('FPR')
+    plt.title(f'ROC curve')
+    for idx, classifier in enumerate(classifiers):
+        fpr, tpr = classifier.test(test_sets[idx])
+        plt.plot(fpr, tpr, marker='.', label=classifier.name)
+    plt.legend()
+    if save:
+        plt.savefig(pathlib.Path(output))
+    else:
+        plt.show()

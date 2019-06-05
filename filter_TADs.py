@@ -23,8 +23,8 @@ def main():
     tad_path = pathlib.Path(args.tads)
     tad_dict = pickle.load(tad_path.open('rb'))
 
-    tads_with_pli_genes = {'1':[],'0.9':[],'0.7':[],'0.5':[],'0.3':[],'0.1':[]}
-    tads_with_conserved_enhancer = {'1':[],'0.9':[],'0.7':[],'0.5':[],'0.3':[],'0.1':[]}
+    tads_with_pli_genes = {'1':[],'0.9':[],'0.5':[],'0.1':[],'0':[]}
+    tads_with_conserved_enhancer = {'1':[],'0.9':[],'0.5':[],'0.1':[],'0':[]}
     for chrom in tad_dict:
         for tad in tad_dict[chrom]:
             if tad.genes:

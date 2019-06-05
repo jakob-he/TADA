@@ -8,6 +8,10 @@ import gzip
 from .bed import Bed
 from .bed_class import BedClass
 
+# third party libararies
+import numpy as np
+import pandas as pd
+
 
 def objects_from_file(path, cls_string, column_names=[]):
     """Load a BED file and return a list of Bed objects""
@@ -210,3 +214,8 @@ def getOverlap(interval_a,interval_b):
 def getDistance(interval_a,interval_b):
     """Returns the distance between two intervals"""
     return max(interval_a[0]-interval_b[1],interval_b[0]-interval_a[1])
+
+def phi_coeff(array_1,array_2):
+    """Implementation of the phi coefficient computation."""
+    cont_tab = pd.crosstab(array_1,array_2)
+    return (cont_tab[1][1]*cont_tab[0][0] - cont_tab[0][1]*cont_tab[1][0])/np.sqrt(sum(cont_tab[0])*sum(cont_tab[1])*sum(cont_tab[:][1])*sum(cont_tab[:][0]))
