@@ -25,6 +25,7 @@ def main():
 
     tads_with_pli_genes = {'1':[],'0.9':[],'0.5':[],'0.1':[],'0':[]}
     tads_with_conserved_enhancer = {'1':[],'0.9':[],'0.5':[],'0.1':[],'0':[]}
+    tads_without_functional_elements = []
     for chrom in tad_dict:
         for tad in tad_dict[chrom]:
             if tad.genes:
@@ -37,6 +38,9 @@ def main():
                 for threshold in tads_with_conserved_enhancer:
                     if any(phastcon >= float(threshold) for phastcon in conservation_scores):
                         tads_with_conserved_enhancer[threshold].append(tad)
+            elif not tad.genes and not tad.enhancers:
+                tads_without_functional_elements.append(tad)
+
 
 
 
@@ -46,6 +50,8 @@ def main():
 
     for threshold, tads in tads_with_conserved_enhancer.items():
         utils.to_bed(tads,pathlib.Path(f'tads_with_phastcon_{threshold}_enhancer.bed'),label=f'TADs_with_phastcon_{threshold}_enhancer')
+
+    utils.to_bed(tads_without_functional_elements,pathlib.Path(f'tads_without_functional_elements.bed'),label='tads_without_functional_elements')
 
 
 

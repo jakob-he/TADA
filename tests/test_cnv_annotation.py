@@ -6,13 +6,13 @@ from lib.gene import Gene
 from lib.enhancer import Enhancer
 import lib.utils as utils
 
-class TadAnnotationTest(unittest.TestCase):
+class CnvAnnotationTest(unittest.TestCase):
     """Test class for the annotation of CNVs"""
 
     def test_annotation(self):
         tad_beds = utils.objects_from_file('tests/test_data/test_tads.bed', 'TAD')
-        enhancer_beds = utils.objects_from_file('tests/test_data/test_enhancer.bed', 'Enhancer',['ID'])
-        gene_beds = utils.objects_from_file('tests/test_data/test_genes.bed', 'Gene',['name'])
+        enhancer_beds = utils.objects_from_file('tests/test_data/test_enhancer.bed', 'Enhancer',column_names=['ID'])
+        gene_beds = utils.objects_from_file('tests/test_data/test_genes.bed', 'Gene',column_names=['name'])
 
         # create dict with chromsomes as keys
         gene_dict = utils.create_chr_dictionary_from_beds(gene_beds)

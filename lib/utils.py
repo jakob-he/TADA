@@ -162,7 +162,7 @@ def create_annotated_tad_dict(tad_dict, gene_dict, enhancer_dict):
             enhancer_dict[chrom] = enhancer_queue + enhancer_dict[chrom]
             gene_dict[chrom] = gene_queue + gene_dict[chrom]
             #Annotate TAD with binary feautres
-            tad.annotate()
+            #tad.annotate()
 
     return tad_dict
 
