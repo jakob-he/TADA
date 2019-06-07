@@ -13,7 +13,7 @@ import numpy as np
 import pandas as pd
 
 
-def objects_from_file(path, cls_string, column_names=[]):
+def objects_from_file(path, cls_string, column_names=[], **kwargs):
     """Load a BED file and return a list of Bed objects""
     Args:
         path: Path to the BED file.
@@ -36,7 +36,7 @@ def objects_from_file(path, cls_string, column_names=[]):
         if line.startswith('#'):
             column_names = line.strip().split('\t')[3:]
             continue
-        bed_objects.append(bed_class(line, column_names))
+        bed_objects.append(bed_class(line, column_names, **kwargs))
 
     open_path.close()
     return bed_objects
@@ -117,10 +117,10 @@ def reduce_dict(dictionary, keys):
     return {key: (dictionary[key] if key in dictionary else []) for key in keys}
 
 
-def create_annotated_tad_dict(tad_dict, gene_dict, enhancer_dict):
+def create_annotated_tad_dict(tad_dict, annotation_dicts, annotate=False, feature_type='binary'):
     """Annotates every TAD with the overlapping genes and enhancers.
-    For each TAD in a chromosome the function iterates through the sorted gene and enhancer lists as long as the
-    start position of either the first gene or first enhancer is less than the end position of the TAD.
+    For each TAD in a chromosome the function iterates through the sorted annotations as long as the
+    start position of any of the first annotations is less than the end position of the TAD.
     If one of the elements satisfies this condition there are three options:
         1. The element ends before the TAD -> discard it, since there is no overlapping TAD in the data set.
         2. The element starts in or before the TAD and ends in the TAD -> Add to TADs elements and remove element from the list.
@@ -128,41 +128,36 @@ def create_annotated_tad_dict(tad_dict, gene_dict, enhancer_dict):
 
     Args:
         tad_dict: A dictionary with chromsomes as keys and the corresponding Tad elements as values.
-        gene_dict: The same as tad_dict with Gene objects.
-        enhancer_dict: The same as tad_dict with Enhancer objects.
+        annotation_dict: A list of dictionaries with chromosomes as keys and the corresponding annotation elements as values.
     """
     # reduce genes and enhancers to chromsomes were tads are available
-    gene_dict, enhancer_dict = [reduce_dict(
-        dictionary, tad_dict.keys()) for dictionary in [gene_dict, enhancer_dict]]
+    annotation_dicts = {key:reduce_dict(
+        dictionary, tad_dict.keys()) for key, dictionary in annotation_dicts.items()}
 
     # iterate through chromsomes
     for chrom in tad_dict:
         for tad in tad_dict[chrom]:
-            gene_queue = []
-            enhancer_queue = []
-            while is_in(gene_dict[chrom], tad) or is_in(enhancer_dict[chrom], tad):
-                if is_in(gene_dict[chrom], tad):
-                    if gene_dict[chrom][0].end < tad.start:
-                        gene_dict[chrom].pop(0)
-                    elif gene_dict[chrom][0].end <= tad.end:
-                        tad.genes.append(gene_dict[chrom].pop(0))
-                    elif gene_dict[chrom][0].end > tad.end:
-                        tad.genes.append(gene_dict[chrom][0])
-                        gene_queue.append(gene_dict[chrom].pop(0))
+            annotation_queue = {}
 
-                if is_in(enhancer_dict[chrom], tad):
-                    if enhancer_dict[chrom][0].end < tad.start:
-                        enhancer_dict[chrom].pop(0)
-                    elif enhancer_dict[chrom][0].end <= tad.end:
-                        tad.enhancers.append(enhancer_dict[chrom].pop(0))
-                    elif enhancer_dict[chrom][0].end > tad.end:
-                        tad.enhancers.append(enhancer_dict[chrom][0])
-                        enhancer_queue.append(enhancer_dict[chrom].pop(0))
+            for annotation_name, annotation_dict in annotation_dicts.items():
+                tad.annotations[annotation_name] = []
+                annotation_queue[annotation_name] = []
 
-            enhancer_dict[chrom] = enhancer_queue + enhancer_dict[chrom]
-            gene_dict[chrom] = gene_queue + gene_dict[chrom]
-            #Annotate TAD with binary feautres
-            #tad.annotate()
+            while any(is_in(annotation_dict[chrom],tad) for annotation_dict in annotation_dicts.values()):
+                for annotation_name, annotation_dict in annotation_dicts.items():
+                    if is_in(annotation_dict[chrom],tad):
+                        if annotation_dict[chrom][0].end < tad.start:
+                            annotation_dict[chrom].pop(0)
+                        elif annotation_dict[chrom][0].end <= tad.end:
+                            tad.annotations[annotation_name].append(annotation_dict[chrom].pop(0))
+                        elif annotation_dict[chrom][0].end > tad.end:
+                            tad.annotations[annotation_name].append(annotation_dict[chrom][0])
+                            annotation_queue[annotation_name].append(annotation_dict[chrom].pop(0))
+
+            annotation_dict[chrom] = annotation_queue[annotation_name] + annotation_dict[chrom]
+            if annotate:
+                # annotate TAD with binary features
+                tad.annotate()
 
     return tad_dict
 

@@ -5,7 +5,7 @@ from .bed import Bed
 
 
 class Gene(Bed):
-    def __init__(self, line, column_names):
+    def __init__(self, line, column_names, **kwargs):
         """A Class containing the information about one gene from a Bed file.
         Args:
             line: The line of bed file (This is just a string).
@@ -13,4 +13,4 @@ class Gene(Bed):
         Returns:
             A new Gene object.
         """
-        super().__init__(line,column_names)
+        super().__init__(line,column_names, **kwargs)

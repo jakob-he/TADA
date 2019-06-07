@@ -16,29 +16,29 @@ def argparser():
     parser.add_argument('-t', '--tads', default='data/TAD/hg38/H1-ESC_Dixon_2015-raw_TADs.txt',
                         help='Path to the TAD boundary BED file.')
     parser.add_argument(
-        '-g', '--genes', default='data/GENE/genes.bed', help='Path to the Gene BED file.')
-    parser.add_argument('-e', '--enhancer', default='data/ENHANCER/FANTOM.bed',
-                        help='Path to the Enhancer BED file.')
+        '-an','--annotation_names',nargs='*',help='Names of the annotations (e.g. genes).')
+    parser.add_argument('-af','--annotation_files',nargs='*',help='Paths to the annotation files.')
     parser.add_argument('-o','--output', default='annotated_TADs.p',help='Output file.')
     return parser.parse_args()
 
 
 def run(args):
     # create bed objects from TADS
+    print(args.tads)
     tad_beds = utils.objects_from_file(args.tads, 'TAD')
-    enhancer_beds = utils.objects_from_file(
-        args.enhancer, 'Enhancer', column_names=['ID','Phastcon'])
-    gene_beds = utils.objects_from_file(
-        args.genes, 'Gene', column_names=['ID','Gene_name','pLI','LOEUF'])
+
+    # create empty enhancer and gene dicts
+    annotation_dicts = {}
+    for idx, annotation_name in enumerate(args.annotation_names):
+        annotation_dicts[annotation_name] = utils.create_chr_dictionary_from_beds(utils.objects_from_file(
+            args.annotation_files[idx], 'Bed'))
 
     # create dict with chromsomes as keys
-    gene_dict = utils.create_chr_dictionary_from_beds(gene_beds)
-    enhancer_dict = utils.create_chr_dictionary_from_beds(enhancer_beds)
     tad_dict = utils.create_chr_dictionary_from_beds(tad_beds)
 
     # Annotate TADs with overlapping enhancer and genes
     annotated_tads = utils.create_annotated_tad_dict(
-        tad_dict, gene_dict, enhancer_dict)
+        tad_dict, annotation_dicts)
 
     return annotated_tads
 

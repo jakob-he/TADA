@@ -5,7 +5,7 @@ chr \t  start \t  end
 """
 
 class Bed:
-    def __init__(self, line, column_names):
+    def __init__(self, line, column_names, **kwargs):
         """Basic class containing the information from a BED file element.
         Args:
             line: The line of bed file (This is just a string).
@@ -14,7 +14,13 @@ class Bed:
             A new Bed object.
         """
         self.data = line.strip().split('\t')
-        self.chr = self.data[0]
+
+        #correct for chromosome notation
+        if self.data[0][:3]=='chr':
+            self.chr = self.data[0]
+        else:
+            self.chr = 'chr' + self.data[0]
+
         self.start = int(self.data[1])
         self.end = int(self.data[2])
         self.data = {column_name: self.data[3 + idx]
