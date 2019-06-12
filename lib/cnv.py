@@ -47,8 +47,14 @@ class CNV(Bed):
                             distance = 1
                         self.annotation_distances[annotation_name].append(distance)
 
-    def get_binary_features(self):
+    def annotate(self,feature_type):
+        """Return a vector containing the feature vector for this annotated cnv"""
+        if feature_type=='basic_binary':
+            return self.get_basic_binary_features()
+
+
+    def get_basic_binary_features(self):
         """Returns binary features which are either directly derived from the TADs or based on the CNV itself.
         The output is a numpy boolean feature vector."""
-        features = [self.boundary_spanning,any(overlap for overlap in self.gene_distances),any(overlap for overlap in self.enhancer_distances),any(tad.high_pLI for tad in self.tads),any(tad.high_Phastcon for tad in self.tads)]
+        features = [self.boundary_spanning,any(overlap for overlap in self.annotation_distances['genes']),any(overlap for overlap in self.annotation_distances['enhancers'])]
         return np.array(features)

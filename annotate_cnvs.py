@@ -36,36 +36,44 @@ def run(args):
     #annotate CNVS
     annotated_cnvs = utils.annotate_cnvs(tads,cnvs)
 
-    for chrom in annotated_cnvs:
-        for cnv in annotated_cnvs[chrom]:
-            print(cnv.annotation_distances)
-
     #save raw CNV object as pickle file
     with open(output_path, "wb") as output:
         pickle.dump(annotated_cnvs, output)
 
     if args.csv:
-        output_df = {'chr':[],'start':[],'stop':[],'gene':[],'hgnc_id':[],'type':[],'mode':[],'mech':[],'syndrome':[]}
+        output_df = {'chr':[],'start':[],'stop':[],'gene':[],'hgnc_id':[],'type':[],'mode':[],'mech':[],'syndrome':[],'TAD_boundary_overlap':[],'ctcf_overlap':[]}
         for chrom in annotated_cnvs:
             for cnv in annotated_cnvs[chrom]:
-                if cnv.boundary_spanning:
-                    print('True')
                 genes = []
                 hgnc_id = []
                 type = []
                 mode = []
                 mech = []
                 syndrome = []
+                ctcf_overlap = []
+                boundary = []
                 if cnv.tads:
                     for tad in cnv.tads:
-                        if tad.genes:
-                            for gene in tad.genes:
+                        if tad.annotations['genes']:
+                            for gene in tad.annotations['genes']:
                                 genes.append(gene.data['gene'])
                                 hgnc_id.append(gene.data['hgnc_id'])
                                 type.append(gene.data['type'])
                                 mode.append(gene.data['mode'])
                                 mech.append(gene.data['mech'])
                                 syndrome.append(gene.data['syndrome'])
+
+                    if any(ctcf_distance for ctcf_distance in cnv.annotation_distances['ctcf']):
+                        ctcf_overlap.append('YES')
+                    else:
+                        ctcf_overlap.append('NO')
+                else:
+                    ctcf_overlap.append('NO')
+                if cnv.boundary_spanning:
+                    boundary.append('YES')
+                else:
+                    boundary.append('NO')
+
                 output_df['chr'].append(cnv.chr)
                 output_df['start'].append(cnv.start)
                 output_df['stop'].append(cnv.end)
@@ -75,11 +83,14 @@ def run(args):
                 output_df['mode'].append(', '.join(mode))
                 output_df['mech'].append(', '.join(mech))
                 output_df['syndrome'].append(', '.join(syndrome))
+                output_df['ctcf_overlap'].append(', '.join(ctcf_overlap))
+                output_df['TAD_boundary_overlap'].append(', '.join(boundary))
 
-    # save annotated cnvs as CSV
-    output_df = pd.DataFrame(output_df)
-    output_df.drop_duplicates(inplace=True)
-    output_df.to_csv(output_path.stem + '.csv',sep='\t',index=False)
+
+        # save annotated cnvs as CSV
+        output_df = pd.DataFrame(output_df)
+        output_df.drop_duplicates(inplace=True)
+        output_df.to_csv(output_path.stem + '.csv',sep='\t',index=False)
 
 
 def main():

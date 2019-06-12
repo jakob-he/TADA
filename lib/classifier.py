@@ -45,7 +45,7 @@ class Classifier():
         plt.figure(figsize=(12,10))
         cor = merged_df.corr(utils.phi_coeff)
         sns.heatmap(cor, annot=True, cmap=plt.cm.Reds)
-        plt.title('Pariwise Pearson Correlation Values')
+        plt.title('Pairwise Pearson Correlation Values')
         plt.savefig(pathlib.Path(output_dir) / f'{self.name}_feature_correlations.png')
 
         # compute correlation with the output variable
@@ -76,7 +76,6 @@ class Classifier():
             # predict class labels and probabilities
             y_pred = self.clf.predict(test_set[0])
             y_pred_scores = self.clf.predict_proba(test_set[0])[:, 1]
-            print(y_pred_scores)
 
             #report classification metrics
             print(classification_report(test_set[1],y_pred,target_names=self.classes))

@@ -24,7 +24,6 @@ def argparser():
 
 def run(args):
     # create bed objects from TADS
-    print(args.tads)
     tad_beds = utils.objects_from_file(args.tads, 'TAD')
 
     # create empty enhancer and gene dicts
