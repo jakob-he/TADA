@@ -51,10 +51,18 @@ class CNV(Bed):
         """Return a vector containing the feature vector for this annotated cnv"""
         if feature_type=='basic_binary':
             return self.get_basic_binary_features()
+        if feature_type=='extended_binary':
+            return self.get_extended_binary_features()
 
 
     def get_basic_binary_features(self):
-        """Returns binary features which are either directly derived from the TADs or based on the CNV itself.
+        """Returns basic binary features which are either directly derived from the TADs or based on the CNV itself.
         The output is a numpy boolean feature vector."""
         features = [self.boundary_spanning,any(overlap for overlap in self.annotation_distances['genes']),any(overlap for overlap in self.annotation_distances['enhancers'])]
+        return np.array(features)
+
+    def get_extended_binary_features(self):
+        """Returns extended binary features which are either directly derived from the TADs or based on the CNV itself.
+        The output is a numpy boolean feature vector."""
+        features = [self.boundary_spanning,any(overlap for overlap in self.annotation_distances['genes']),any(overlap for overlap in self.annotation_distances['enhancers']),any(overlap for overlap in self.annotation_distances['DDG2P']),any(overlap for overlap in self.annotation_distances['CTCF']),any(tad.high_pLI for tad in self.tads),any(tad.high_Phastcon for tad in self.tads)]
         return np.array(features)

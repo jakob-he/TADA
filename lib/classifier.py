@@ -2,8 +2,11 @@
 # classifiers
 from sklearn.linear_model import LogisticRegression
 
-#CV
+# CV
 from sklearn.model_selection import StratifiedKFold
+
+# Feature selection
+from sklearn.decomposition import PCA
 
 # visualization
 from sklearn.metrics import classification_report
@@ -15,6 +18,8 @@ from sklearn.metrics import f1_score
 from sklearn.metrics import roc_curve
 from sklearn.metrics import roc_auc_score
 
+# third party libararies
+import numpy as np
 import pathlib
 import pandas as pd
 
@@ -55,6 +60,20 @@ class Classifier():
         relevant_features = cor_target[cor_target>0.5]
         print(f'Features with correlation larger than 0.5: {relevant_features}')
 
+        # PCA
+        plt.figure(figsize=(12,10))
+        pca = PCA(n_components=2)
+        projected = pca.fit_transform(merged_df.drop(['label'],axis=1))
+        colors = ['red' if label else 'green' for label in merged_df['label']]
+        plt.scatter(projected[:, 0], projected[:, 1],
+                    c=colors, edgecolor='none', alpha=0.05)
+        plt.xlabel('PC 1')
+        plt.ylabel('PC 2')
+        plt.savefig(pathlib.Path(output_dir) / f'{self.name}_PCA.png')
+
+
+
+
     def train(self,train_set):
         skf = StratifiedKFold(n_splits=10)
         print('training with 10-fold CV...')
@@ -84,6 +103,19 @@ class Classifier():
             fpr, tpr, thresholds = roc_curve(test_set[1], y_pred_scores)
 
             if plotting:
+                # plot feature importance
+                # IMPOPRTANT! to be able to compare the coefficients all the features have to be on the same scale.
+                coef = self.clf.coef_[0]
+                plt.figure(figsize=(12,10))
+                feature_index = np.arange(len(coef))
+                plt.bar(feature_index,coef)
+                plt.title('Coefficients')
+                plt.xlabel('Features')
+                plt.xticks(ticks=feature_index,labels=test_set[0].columns)
+                if save:
+                    plt.tight_layout()
+                    plt.savefig(pathlib.Path(output_dir) / f'{self.name}_Coefficients.png')
+
                 # plot the roc curve
                 plt.figure(figsize=(12,10))
                 plt.plot([0, 1], [0, 1], linestyle='--',label='random classification')
@@ -93,5 +125,6 @@ class Classifier():
                 plt.title(f'{self.name} ROC curve')
                 plt.legend()
                 if save:
-                    plt.savefig(pathlib.Path(output_dir) / f'{self.classifier_name}_ROC_Curve.png')
+                    plt.tight_layout()
+                    plt.savefig(pathlib.Path(output_dir) / f'{self.name}_ROC_Curve.png')
             return fpr, tpr

@@ -17,13 +17,16 @@ import lib.plotting as plotting
 def create_feature_df(cnv_dict,feature_type):
     """Creates a pandas Dataframe containing cnvs as rows and features as columns"""
     #get features for each CNV
-    cnv_features = []
     if feature_type=='basic_binary':
         features = ['Boundary Breaking','Gene Overlap','Enhancer Overlap']
-        for chrom in cnv_dict:
-            for cnv in cnv_dict[chrom]:
-                if cnv.tads:
-                    cnv_features.append(cnv.annotate(feature_type))
+    if feature_type=='extended_binary':
+        features = ['Boundary Breaking','Gene Overlap','Enhancer Overlap','DDG2P Genes Overlap','CTCF','TADs with high pLI','TADs with high Phastcon']
+
+    cnv_features = []
+    for chrom in cnv_dict:
+        for cnv in cnv_dict[chrom]:
+            if cnv.tads:
+                cnv_features.append(cnv.annotate(feature_type))
 
     feature_df = pd.DataFrame(data=cnv_features,columns=features)
     return feature_df

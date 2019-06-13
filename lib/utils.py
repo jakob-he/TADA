@@ -117,7 +117,7 @@ def reduce_dict(dictionary, keys):
     return {key: (dictionary[key] if key in dictionary else []) for key in keys}
 
 
-def create_annotated_tad_dict(tad_dict, annotation_dicts, annotate=False, feature_type='binary'):
+def create_annotated_tad_dict(tad_dict, annotation_dicts, annotate=False,feature_type='binary'):
     """Annotates every TAD with the overlapping genes and enhancers.
     For each TAD in a chromosome the function iterates through the sorted annotations as long as the
     start position of any of the first annotations is less than the end position of the TAD.
@@ -157,7 +157,7 @@ def create_annotated_tad_dict(tad_dict, annotation_dicts, annotate=False, featur
             annotation_dict[chrom] = annotation_queue[annotation_name] + annotation_dict[chrom]
             if annotate:
                 # annotate TAD with binary features
-                tad.annotate()
+                tad.annotate(feature_type)
 
     return tad_dict
 

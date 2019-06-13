@@ -14,3 +14,12 @@ python3 annotate_tads.py -t /project/GENTLE_SCRATCH/DATA/TAD_BOUNDARIES/Dali/Dix
 python3 annotate_cnvs.py -t classification_run_1/annotated_TADs.p -c /project/GENTLE_SCRATCH/DATA/REFERENCE_STRUCTURAL_VARIANTS/shared_variants_audano_gnomad_trimmed_filtered.bed -o classification_run_1/non_pathogenic_cnvs.p
 python3 annotate_cnvs.py -t classification_run_1/annotated_TADs.p -c /project/GENTLE_BKP/DECIPHER_CNV/mundlos_and_decipher_size_and_number_matched.bed -o classification_run_1/pathogenic_cnvs.p
 python3 classification_run.py -c1 classification_run_1/non_pathogenic_cnvs.p -c2 classification_run_1/pathogenic_cnvs.p -f basic_binary -cls lr -kw solver=liblinear -o classification_run_1 > classification_run_1/log.txt
+
+
+#2. Run
+#Extended binary features: GnomAD genes overlap, DDG2P genes, FANTOM5 enhancer overlap, TAD boundary breaking, CTCF binding site overlap, TADs with high pLI genes (=1), TADs with highly conserved enhancer (>=0.9)
+mkdir -p classification_run_2
+python3 annotate_tads.py -t /project/GENTLE_SCRATCH/DATA/TAD_BOUNDARIES/Dali/Dixon/TADcalls_TopDom_Dixon_500M_50000.bed -an genes DDG2P enhancers CTCF -af /project/GENTLE_SCRATCH/DATA/GENES/gnomad_genes_pli_loeuf.bed /project/GENTLE_SCRATCH/DATA/GENES/DDG2P_genes.bed /project/GENTLE_SCRATCH/DATA/ENHANCERS/OTHER/FANTOM5/fantom5_enhancer_phastcon_average.bed /project/GENTLE_SCRATCH/DATA/CTCF/ctcf_peaks_fibroblasts.bed -o classification_run_2/annotated_TADs.p
+python3 annotate_cnvs.py -t classification_run_2/annotated_TADs.p -c /project/GENTLE_SCRATCH/DATA/REFERENCE_STRUCTURAL_VARIANTS/shared_variants_audano_gnomad_trimmed_filtered.bed -o classification_run_2/non_pathogenic_cnvs.p
+python3 annotate_cnvs.py -t classification_run_2/annotated_TADs.p -c /project/GENTLE_BKP/DECIPHER_CNV/mundlos_and_decipher_size_and_number_matched.bed -o classification_run_2/pathogenic_cnvs.p
+python3 classification_run.py -c1 classification_run_2/non_pathogenic_cnvs.p -c2 classification_run_2/pathogenic_cnvs.p -f extended_binary -cls lr -kw solver=liblinear -o classification_run_2 > classification_run_2/log.txt

@@ -37,7 +37,7 @@ class Tad(Bed):
         This is the largest threshold showing significant enrichment of pathogenic variants (GAT)."""
         if self.annotations['enhancers']:
             phastcons = [enhancer.data['Phastcon'] for enhancer in self.annotations['enhancers']]
-            return any(float(phastcon) == 1 for phastcon in phastcons if phastcon != 'None')
+            return any(float(phastcon) >= 0.9 for phastcon in phastcons if phastcon != 'None')
 
     def annotate(self, feature_type):
         """Annotates the TAD with a set of features."""

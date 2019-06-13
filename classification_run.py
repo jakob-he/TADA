@@ -39,9 +39,10 @@ def run(args):
     lr = Classifier(classifier=args.cls,class_weight='balanced',**kwargs)
     lr.feature_selection(train_set,output_dir=args.output)
     lr.train(train_set)
+    lr.test(test_set,save=True,plotting=True,output_dir=args.output)
 
     # plot roc curve
-    plotting.plot_multiple_roc([lr],[test_set],save=True,output=pathlib.Path(args.output) / 'ROC_curve.png')
+    #plotting.plot_multiple_roc([lr],[test_set],save=True,output=pathlib.Path(args.output) / 'ROC_curve.png')
 
 
 def main():
