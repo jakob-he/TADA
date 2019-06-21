@@ -15,17 +15,19 @@ def argparser():
     parser = argparse.ArgumentParser('Full classification between pathogenic and non pathogenic variants with variable features.')
     parser.add_argument('-c1','--cnvs1', help='Non pathogenic pickeled CNV set.')
     parser.add_argument('-c2','--cnvs2', help='Pathogenic pickeled CNV set.')
-    parser.add_argument('-f','--feature', help='Feature set. Options: \n basic_binary')
+    parser.add_argument('-f','--feature', help='Feature set. Options: \n basic_binary \n extended binary \n basic continous \n extended continous')
     parser.add_argument('-cls','--cls', help='Type of classifier. Allowed options are: \n lr = Logistic Regression')
-    parser.add_argument('-kw','--kwargs',default='',help='Keyword arguments for the classifier. They have to be in the flowwing format "keyword_1=arg_1,keyword_2=arg_2"')
+    parser.add_argument('-kw','--kwargs',default={},help='Keyword arguments for the classifier. They have to be in the flowwing format "keyword_1=arg_1,keyword_2=arg_2"')
     parser.add_argument('-o','--output', help='Output location.')
     return parser.parse_args()
 
 
 def run(args):
     # create kwarg dict
-    kwarg_split = args.kwargs.split(',')
-    kwargs = {kwarg.split('=')[0]:kwarg.split('=')[1] for kwarg in kwarg_split}
+    kwargs = args.kwargs
+    if kwargs:
+        kwarg_split = args.kwargs.split(',')
+        kwargs = {kwarg.split('=')[0]:kwarg.split('=')[1] for kwarg in kwarg_split}
 
     # unpickle the annotated CNV files
     with pathlib.Path(args.cnvs1).open('rb') as non_pathogenic_cnvs:
@@ -36,8 +38,8 @@ def run(args):
 
     # create test and training set
     train_set, test_set = preprocessing.create_stratified_training_and_test_set(non_patho_cnvs,patho_cnvs,feature_type=args.feature,oneHot=False)
-    lr = Classifier(classifier=args.cls,class_weight='balanced',**kwargs)
-    lr.feature_selection(train_set,output_dir=args.output)
+    lr = Classifier(classifier=args.cls, class_weight='balanced',**kwargs)
+    lr.feature_selection(train_set,args.feature,output_dir=args.output)
     lr.train(train_set)
     lr.test(test_set,save=True,plotting=True,output_dir=args.output)
 

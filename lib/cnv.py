@@ -25,6 +25,7 @@ class CNV(Bed):
             super().__init__(line,column_names)
         self.tads = []
         self.boundary_spanning = False
+        self.annotations = {}
         self.annotation_distances = {}
 
     def __str__(self):
@@ -32,27 +33,50 @@ class CNV(Bed):
         tads = "\n".join([str(tad) for tad in self.tads])
         return f'{self.chr}\t{self.start}\t{self.end}\nTADS\n{tads}'
 
-    def calculate_overlap_and_distances(self):
-        """Calculates the distance and overlap for each annotation in the same TAD as the CNV. Currenlty modifed for binary overlap."""
+
+    def calculate_overlap_and_distances(self, feature_type):
+        """Calculates the distance and overlap for each annotation in the same TAD as the CNV. Overlap is always binary."""
+        binary = feature_type == 'binary'
+        self.annotation_distances['TAD_boundaries']=[]
         if self.tads:
             for tad in self.tads:
+
+                if self.boundary_spanning:
+                    self.annotation_distances['TAD_boundaries'].append(0)
+                else:
+                    self.annotation_distances['TAD_boundaries'].append(min(self.start-tad.start,tad.end-self.end))
+
                 for annotation_name, annotations in tad.annotations.items():
+                    self.annotations[annotation_name] = annotations
                     self.annotation_distances[annotation_name] = []
                     for annotation in annotations:
                         overlap = utils.getOverlap([self.start,self.end],[annotation.start,annotation.end])
-                        if overlap == 0:
+                        if overlap > 0:
+                            overlap = 1
                             distance = 0
-                            #distance = utils.getDistance([self.start,self.end],[annotation.start,annotation.end])
                         else:
-                            distance = 1
-                        self.annotation_distances[annotation_name].append(distance)
+                            distance = utils.getDistance([self.start,self.end],[annotation.start,annotation.end])
 
-    def annotate(self,feature_type):
+                        if binary:
+                            self.annotation_distances[annotation_name].append(overlap)
+                        else:
+                            self.annotation_distances[annotation_name].append(distance)
+
+    def annotate(self, feature_type):
         """Return a vector containing the feature vector for this annotated cnv"""
+        if 'binary' in feature_type:
+            self.calculate_overlap_and_distances('binary')
+        else:
+            self.calculate_overlap_and_distances('continous')
+
         if feature_type=='basic_binary':
             return self.get_basic_binary_features()
         if feature_type=='extended_binary':
             return self.get_extended_binary_features()
+        if feature_type=='basic_continous':
+            return self.get_basic_continous_features()
+        if feature_type=='extended_continous':
+            return self.get_extended_continous_features()
 
 
     def get_basic_binary_features(self):
@@ -66,3 +90,24 @@ class CNV(Bed):
         The output is a numpy boolean feature vector."""
         features = [self.boundary_spanning,any(overlap for overlap in self.annotation_distances['genes']),any(overlap for overlap in self.annotation_distances['enhancers']),any(overlap for overlap in self.annotation_distances['DDG2P']),any(overlap for overlap in self.annotation_distances['CTCF']),any(tad.high_pLI for tad in self.tads),any(tad.high_Phastcon for tad in self.tads)]
         return np.array(features)
+
+    def get_basic_continous_features(self):
+        """Returns basic continous features which are either directly derived from the TADs or based on the CNV itself.
+        The output is a numpy boolean feature vector."""
+        features = [min(self.annotation_distances['TAD_boundaries']),min(self.annotation_distances['genes'],default=-1),min(self.annotation_distances['enhancers'],default=-1)]
+        return np.array(features,dtype=int)
+
+    def get_extended_continous_features(self):
+        """Returns extended continous features which are either directly derived from the TADs or based on the CNV itself.
+        The output is a numpy boolean feature vector."""
+        try:
+            pLI = float(self.annotations['genes'][np.argmin(self.annotation_distances['genes'])].data['pLI'])
+            HI = float(self.annotations['genes'][np.argmin(self.annotation_distances['genes'])].data['HI'])
+            phastcon = float(self.annotations['enhancers'][np.argmin(self.annotation_distances['enhancers'])].data['Phastcon'])
+        except (ValueError,KeyError) as e:
+            pLI = -1
+            HI = -1
+            phastcon = -1
+
+        features = [min(self.annotation_distances['TAD_boundaries']),min(self.annotation_distances['genes'],default=-1),min(self.annotation_distances['enhancers'],default=-1),min(self.annotation_distances['DDG2P'],default=-1),pLI,phastcon,HI,min(self.annotation_distances['CTCF'],default=-1)]
+        return np.array(features,dtype=float)

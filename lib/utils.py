@@ -196,9 +196,6 @@ def annotate_cnvs(tad_dict, cnv_dict):
             cnv_dict[chrom] = cnv_queue + cnv_dict[chrom]
         annotated_cnvs.extend(cnv_dict[chrom])
 
-    for cnv in annotated_cnvs:
-        cnv.calculate_overlap_and_distances()
-
     return create_chr_dictionary_from_beds(annotated_cnvs)
 
 

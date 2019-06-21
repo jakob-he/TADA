@@ -30,7 +30,7 @@ class Tad(Bed):
         This requires genes with pLI values in the range (0,1)."""
         if self.annotations['genes']:
             pLIs = [gene.data['pLI'] for gene in self.annotations['genes']]
-            return any(float(pLI) == 1 for pLI in pLIs if pLI != 'NA')
+            return any(float(pLI) == 1 for pLI in pLIs if pLI != 'NA' and pLI)
 
     def contains_highly_conserved_enhancer(self):
         """Returns True if the TAD contains an enhancers with Phastcon value greater or equal to 0.6.

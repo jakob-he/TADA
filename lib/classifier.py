@@ -1,6 +1,7 @@
 """implementation of a basic classifier class which allows to use different algorithms in the same framework."""
 # classifiers
 from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
 
 # CV
 from sklearn.model_selection import StratifiedKFold
@@ -17,6 +18,8 @@ import seaborn as sns
 from sklearn.metrics import f1_score
 from sklearn.metrics import roc_curve
 from sklearn.metrics import roc_auc_score
+from sklearn.metrics import precision_recall_curve
+from sklearn.metrics import average_precision_score
 
 # third party libararies
 import numpy as np
@@ -26,7 +29,7 @@ import pandas as pd
 #own libraries
 from . import utils
 
-classifier_dict = {'lr':LogisticRegression}
+classifier_dict = {'lr':LogisticRegression,'rf':RandomForestClassifier}
 
 class Classifier():
     def __init__(self, classifier='lr',name='',**kwargs):
@@ -40,7 +43,7 @@ class Classifier():
         self.classes = ['non-pathogenic','pathogenic']
         self.trained = False
 
-    def feature_selection(self,train_set,save=False,output_dir='./'):
+    def feature_selection(self,train_set,feature_type,save=False,output_dir='./'):
         """Visulaizes the correlation in between the independent feateure and the class labels."""
         # merge independent and dependent variables
         merged_df = train_set[0].copy()
@@ -48,7 +51,12 @@ class Classifier():
 
         # compute Pearson correlation between features
         plt.figure(figsize=(12,10))
-        cor = merged_df.corr(utils.phi_coeff)
+
+        if 'binary' in feature_type:
+            cor = merged_df.corr(utils.phi_coeff)
+        else:
+            cor = merged_df.corr()
+
         sns.heatmap(cor, annot=True, cmap=plt.cm.Reds)
         plt.title('Pairwise Pearson Correlation Values')
         plt.savefig(pathlib.Path(output_dir) / f'{self.name}_feature_correlations.png')
@@ -72,8 +80,6 @@ class Classifier():
         plt.savefig(pathlib.Path(output_dir) / f'{self.name}_PCA.png')
 
 
-
-
     def train(self,train_set):
         skf = StratifiedKFold(n_splits=10)
         print('training with 10-fold CV...')
@@ -85,7 +91,7 @@ class Classifier():
         for train, test in skf.split(train_set[0],train_set[1]):
             self.clf = self.clf.fit(train_set[0][train],train_set[1][train])
             y_pred = self.clf.predict_proba(train_set[0][test])
-            print(f'AUC: {roc_auc_score(train_set[1][test],y_pred[:, 1])}')
+            print(f'Average Precision: {average_precision_score(train_set[1][test],y_pred[:, 1])}')
 
         self.trained = True
 
@@ -100,12 +106,16 @@ class Classifier():
             print(classification_report(test_set[1],y_pred,target_names=self.classes))
 
             # calculate roc curve
-            fpr, tpr, thresholds = roc_curve(test_set[1], y_pred_scores)
+            precision, recall, thresholds = precision_recall_curve(test_set[1], y_pred_scores)
 
             if plotting:
                 # plot feature importance
                 # IMPOPRTANT! to be able to compare the coefficients all the features have to be on the same scale.
-                coef = self.clf.coef_[0]
+                if self.name == 'rf':
+                    coef = self.clf.feature_importances_
+                else:
+                    coef = self.clf.coef_[0]
+                print(coef)
                 plt.figure(figsize=(12,10))
                 feature_index = np.arange(len(coef))
                 plt.bar(feature_index,coef)
@@ -118,13 +128,14 @@ class Classifier():
 
                 # plot the roc curve
                 plt.figure(figsize=(12,10))
-                plt.plot([0, 1], [0, 1], linestyle='--',label='random classification')
-                plt.plot(fpr, tpr, marker='.')
-                plt.ylabel('TPR')
-                plt.xlabel('FPR')
-                plt.title(f'{self.name} ROC curve')
-                plt.legend()
+                plt.step(recall, precision, color='b', alpha=0.2, where='post')
+                plt.fill_between(recall, precision, alpha=0.2, color='b', step='post')
+                plt.xlabel('Recall')
+                plt.ylabel('Precision')
+                plt.ylim([0.0, 1.05])
+                plt.xlim([0.0, 1.0])
+                plt.title('2-class Precision-Recall curve')
                 if save:
                     plt.tight_layout()
                     plt.savefig(pathlib.Path(output_dir) / f'{self.name}_ROC_Curve.png')
-            return fpr, tpr
+            return precision, recall
