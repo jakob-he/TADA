@@ -43,7 +43,7 @@ def objects_from_file(path, cls_string, column_names=[], **kwargs):
 
 
 def validate_file(path):
-    "Check if the path is a valid BED file and return a pathlib.Path object."
+    """Check if the path is a valid BED file and return a pathlib.Path object."""
     path = pathlib.Path(path)
 
     # check if path is a valid file
@@ -56,6 +56,24 @@ def validate_file(path):
         raise Exception(f'{path} is not a bed,txt or gz file')
 
     return path
+
+
+def read_result_file(path):
+    """Load the data from a result file as a pandas dataframe.
+    Currently only a vector containing the 10-fold CV results is returned."""
+    path = pathlib.Path(path)
+
+    # check if path is a valid file
+    if not path.is_file():
+        raise Exception(f'{path} is not a valid path')
+
+    with path.open() as results:
+        for line in results:
+            if line.startswith('10'):
+                cv_avg = float(line.strip().split(':')[1])
+            elif line.startswith('non-pathogenic'):
+                support = int(line.strip().split('     ')[-1])
+    return cv_avg, support
 
 
 def create_chr_dictionary_from_beds(beds: [Bed]):

@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler, OneHotEncoder, RobustScaler, MaxAbsScaler
+from sklearn.impute import SimpleImputer
 
 # tensorflow classifier
 #from lib.lr import LR
@@ -21,10 +22,10 @@ def create_feature_df(cnv_dict,feature_type):
         features = ['Boundary Breaking','Gene Overlap','Enhancer Overlap']
     if feature_type=='extended_binary':
         features = ['Boundary Breaking','Gene Overlap','Enhancer Overlap','DDG2P Genes Overlap','CTCF','TADs with high pLI','TADs with high Phastcon']
-    if feature_type=='basic_continous':
+    if feature_type=='basic_continuous':
         features = ['Boundary Distance','Gene Distance','Enhancer Distance']
-    if feature_type=='extended_continous':
-        features = ['Boundary Distance','Gene Distance','Enhancer Distance','DDG2P distance','gene pLI','enhancer conservation','HI score gene','CTCF distance']
+    if feature_type=='extended_continuous':
+        features = ['Boundary Distance','Gene Distance','Enhancer Distance','DDG2P distance','gene pLI','enhancer conservation','HI score gene','CTCF distance','HI LogOdds Score']
 
     cnv_features = []
     for chrom in cnv_dict:
@@ -35,6 +36,20 @@ def create_feature_df(cnv_dict,feature_type):
     feature_df = pd.DataFrame(data=cnv_features,columns=features)
     return feature_df
 
+def scale_feature_df(X,scaler):
+    X = pd.DataFrame(scaler.transform(X),columns=X.columns)
+    return X
+
+def impute_feature_df(X,imputer):
+    imputed_X = pd.DataFrame(imputer.transform(X))
+    imputed_X.columns = X.columns
+    imputed_X.index = X.index
+    return imputed_X
+
+def scale_and_impute_df(X,scaler,imputer):
+    imputed_X = impute_feature_df(X,imputer)
+    scaled_X = scale_feature_df(imputed_X,scaler)
+    return scaled_X
 
 def create_stratified_training_and_test_set(cnv_dict_1,cnv_dict_2,feature_type,oneHot=False,validation=False,exclude_features=[]):
     """Splits the merged feature dataframe of two CNV sets into a training set stratified by label."""
@@ -76,25 +91,27 @@ def create_stratified_training_and_test_set(cnv_dict_1,cnv_dict_2,feature_type,o
     else:
         Y = df_merged['label']
 
-    if 'continous' in feature_type:
-        # replace NA value with max of the column
-        X.replace({column:{-1:X[column].mean()} for column in X.columns},inplace=True)
-
     # create training and test set stratified by class labels
     X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, random_state=42, stratify=Y)
 
-    # scale continous features.
+    # imput missing values.
+    # scale continuous features.
     #TODO: Adapt this for validation sets.
-    if 'continous' in feature_type:
-        scaler = MinMaxScaler(feature_range=(-1,1))
-        transformer = scaler.fit(X_train)
-        X_train = pd.DataFrame(transformer.transform(X_train),columns=X_train.columns)
-        X_test = pd.DataFrame(transformer.transform(X_test),columns=X_test.columns)
+    if 'continuous' in feature_type:
+        # Create our imputer to replace missing values with the mean e.g.
+        imp = SimpleImputer(missing_values=np.nan, strategy='median')
+        imp = imp.fit(X_train)
+
+        scaler = RobustScaler()
+        scaler = scaler.fit(X_train)
+
+        X_train = scale_and_impute_df(X_train,scaler, imp)
+        X_test = scale_and_impute_df(X_test,scaler, imp)
 
     if validation:
         # create validation and training set
         X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2, random_state=42, stratify=y_train)
 
-        return ([X_train,y_train],[X_val,y_val],[X_test,y_test])
+        return ([X_train,y_train],[X_val,y_val],[X_test,y_test],scaler, imp)
     else:
-        return ([X_train,y_train],[X_test,y_test])
+        return ([X_train,y_train],[X_test,y_test],scaler, imp)

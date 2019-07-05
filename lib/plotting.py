@@ -7,12 +7,57 @@ import numpy as np
 import pathlib
 import pathlib
 import pandas as pd
+from sklearn.metrics import confusion_matrix
 
 # plotting
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+def plot_confusion_matrix(y_true, y_pred, classes,
+                          normalize=False,
+                          title=None,
+                          cmap=plt.cm.Blues):
+    """
+    This function prints and plots the confusion matrix.
+    Normalization can be applied by setting `normalize=True`.
+    """
+    if not title:
+        if normalize:
+            title = 'Normalized confusion matrix'
+        else:
+            title = 'Confusion matrix, without normalization'
 
+    # Compute confusion matrix
+    cm = confusion_matrix(y_true, y_pred)
+    if normalize:
+        cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+
+    fig, ax = plt.subplots()
+    im = ax.imshow(cm, interpolation='nearest', cmap=cmap)
+    ax.figure.colorbar(im, ax=ax)
+    # We want to show all ticks...
+    ax.set(xticks=np.arange(cm.shape[1]),
+           yticks=np.arange(cm.shape[0]),
+           # ... and label them with the respective list entries
+           xticklabels=classes, yticklabels=classes,
+           title=title,
+           ylabel='True label',
+           xlabel='Predicted label')
+
+    # Rotate the tick labels and set their alignment.
+    plt.setp(ax.get_xticklabels(), rotation=45, ha="right",
+             rotation_mode="anchor")
+
+    # Loop over data dimensions and create text annotations.
+    fmt = '.2f' if normalize else 'd'
+    thresh = cm.max() / 2.
+    for i in range(cm.shape[0]):
+        for j in range(cm.shape[1]):
+            ax.text(j, i, format(cm[i, j], fmt),
+                    ha="center", va="center",
+                    color="white" if cm[i, j] > thresh else "black")
+    fig.tight_layout()
+    return ax
 
 def plot_size_dist(beds, output='./', plot_type='h', save=False):
     """Plots the size distribution of elements in a bed file.
@@ -117,5 +162,33 @@ def plot_multiple_roc(classifiers:[Classifier],test_sets,save=False,output=''):
     plt.legend()
     if save:
         plt.savefig(pathlib.Path(output))
+    else:
+        plt.show()
+
+def plot_avg_prec_scores(scores,k,support=[],k_name='Allele Count Threshold',save=False,output=''):
+    """Plots a line plot with average precision means for each fiven K"""
+    plt.figure(figsize=(12,10))
+
+    fig, ax1 = plt.subplots()
+
+    color = 'tab:blue'
+    ax1.plot(k,scores,color=color)
+    ax1.set_ylabel('10-fold average precision mean', color=color)
+    ax1.set_xlabel(k_name)
+    ax1.set_xticks(k)
+    ax1.tick_params(axis='y', labelcolor=color)
+
+    ax2 = ax1.twinx()
+
+    color = 'tab:red'
+    ax2.plot(k,support,color=color)
+    ax2.set_ylabel('Number of test variants', color=color)
+    ax2.tick_params(axis='y', labelcolor=color)
+
+
+
+    fig.tight_layout()
+    if save:
+        plt.savefig(pathlib.Path(output) / 'Avg_Prec_per_AF.png')
     else:
         plt.show()
