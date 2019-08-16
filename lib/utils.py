@@ -11,6 +11,8 @@ from .bed_class import BedClass
 # third party libararies
 import numpy as np
 import pandas as pd
+from scipy import stats, linalg
+
 
 
 def objects_from_file(path, cls_string, column_names=[], **kwargs):
@@ -228,4 +230,39 @@ def getDistance(interval_a,interval_b):
 def phi_coeff(array_1,array_2):
     """Implementation of the phi coefficient computation."""
     cont_tab = pd.crosstab(array_1,array_2)
+    print(cont_tab)
     return (cont_tab[1][1]*cont_tab[0][0] - cont_tab[0][1]*cont_tab[1][0])/np.sqrt(sum(cont_tab[0])*sum(cont_tab[1])*sum(cont_tab[:][1])*sum(cont_tab[:][0]))
+
+def partial_corr(feature_df,feature_type):
+    """
+    Returns the sample linear partial correlation coefficients between pairs of variables in the feature dataframe, controlling
+    for the remaining variables in the dataframe. The implementation is based on https://gist.github.com/fabianp/9396204419c7b638d38f.
+    Args:
+    feature_df = pandas DataFrame object, shape (n, p)
+        Array with the different variables. Each column of C is taken as a variable
+    Output:
+    P_corr = pandas DataFrame object, shape (p, p)
+        P_corr[i, j] contains the partial correlation of feature_df[:, i] and feature_df[:, j] controlling
+        for the remaining variables in the feature dataframe.
+    """
+    C = feature_df.values
+    p = C.shape[1]
+    P_corr = np.zeros((p, p), dtype=np.float)
+
+    for i in range(p):
+        P_corr[i, i] = 1
+        for j in range(i+1, p):
+            idx = np.ones(p, dtype=np.bool)
+            idx[i] = False
+            idx[j] = False
+            beta_i = linalg.lstsq(C[:, idx], C[:, j])[0]
+            beta_j = linalg.lstsq(C[:, idx], C[:, i])[0]
+
+            res_j = C[:, j] - C[:, idx].dot(beta_i)
+            res_i = C[:, i] - C[:, idx].dot(beta_j)
+            corr = stats.pearsonr(res_i, res_j)[0]
+            P_corr[i, j] = corr
+            P_corr[j, i] = corr
+    P_corr = pd.DataFrame(P_corr,columns=feature_df.columns)
+    P_corr.rename({idx:column for idx,column in enumerate(feature_df.columns)},inplace=True)
+    return P_corr

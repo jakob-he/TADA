@@ -8,10 +8,12 @@ import pathlib
 import pathlib
 import pandas as pd
 from sklearn.metrics import confusion_matrix
+from itertools import permutations
 
 # plotting
 import matplotlib.pyplot as plt
 import seaborn as sns
+import networkx as nx
 
 def plot_confusion_matrix(y_true, y_pred, classes,
                           normalize=False,
@@ -113,8 +115,6 @@ def plot_annotation_dist(beds, annotation, output='./',plot_type='h', save = Fal
     else:
         plt.show()
 
-
-
 def plot_tad_element_dist(tads, output='./', save=False, genes=True, enhancer=True):
     """Plots the distribution of the number of genes and enhancers in the list of Tads"""
     length = 1
@@ -192,3 +192,35 @@ def plot_avg_prec_scores(scores,k,support=[],k_name='Allele Count Threshold',sav
         plt.savefig(pathlib.Path(output) / 'Avg_Prec_per_AF.png')
     else:
         plt.show()
+
+def plot_correlation_node_graph(cor):
+    """Plots a node graph where nodes correspond to features and edges to correlations
+    Args:
+        cor = pandasDataFrame with pairwise correlation values.
+    Output:
+        ax = matplotlib axis of the node graph.
+    """
+    # Create edge dictionary
+    orig, dest, cors = zip(*[(cor.columns[row],cor.columns[col],cor.iloc[row][cor.columns[col]]) for row, col in permutations(range(0,cor.shape[1]),2) if cor.iloc[row][cor.columns[col]] >= 0.1])
+
+    # replace  spaces with newline in node descriptors
+    orig = [ori.replace(' ','\n') for ori in orig]
+    dest = [des.replace(' ','\n') for des in dest]
+
+    # Build a dataframe for the edges
+    edge_df = pd.DataFrame({'from':orig,'to':dest})
+
+    # Build the node graph
+    G=nx.from_pandas_edgelist(edge_df, 'from', 'to')
+
+    # Graph with Custom nodes:
+    fig = plt.figure(figsize=(12,10))
+    pos=nx.spring_layout(G,scale=0.5)
+    nx.draw(G, pos=pos,with_labels=True, node_size=10000, node_color="#98db84", node_shape="o", alpha=0.7, linewidths=2,font_size=20,font_weight='bold',font_color='#000000')
+
+    edge_labels = {}
+    for idx,cor in enumerate(cors):
+        key = (orig[idx],dest[idx])
+        edge_labels[key] = round(cor,4)
+    nx.draw_networkx_edge_labels(G,pos,edge_labels=edge_labels,font_color='black',font_size=20,label_pos=0.5)
+    return fig

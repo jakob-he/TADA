@@ -70,14 +70,16 @@ class CNV(Bed):
             self.calculate_overlap_and_distances('continuous')
 
         if feature_type=='basic_binary':
-            return self.get_basic_binary_features()
+            features = self.get_basic_binary_features()
         if feature_type=='extended_binary':
-            return self.get_extended_binary_features()
+            features = self.get_extended_binary_features()
         if feature_type=='basic_continuous':
-            return self.get_basic_continuous_features()
+            features = self.get_basic_continuous_features()
         if feature_type=='extended_continuous':
-            return self.get_extended_continuous_features()
+            features = self.get_extended_continuous_features()
 
+        self.features = features
+        return features
 
     def get_basic_binary_features(self):
         """Returns basic binary features which are either directly derived from the TADs or based on the CNV itself.
@@ -88,33 +90,34 @@ class CNV(Bed):
     def get_extended_binary_features(self):
         """Returns extended binary features which are either directly derived from the TADs or based on the CNV itself.
         The output is a numpy boolean feature vector."""
-        features = [self.boundary_spanning,any(overlap for overlap in self.annotation_distances['genes']),any(overlap for overlap in self.annotation_distances['enhancers']),any(overlap for overlap in self.annotation_distances['DDG2P']),any(overlap for overlap in self.annotation_distances['CTCF']),any(tad.high_pLI for tad in self.tads),any(tad.high_Phastcon for tad in self.tads)]
+        features = [self.boundary_spanning,any(overlap for overlap in self.annotation_distances['genes']),any(overlap for overlap in self.annotation_distances['enhancers']),any(overlap for overlap in self.annotation_distances['DDG2P']),any(overlap for overlap in self.annotation_distances['CTCF'])]
         return np.array(features)
 
     def get_basic_continuous_features(self):
         """Returns basic continuous features which are either directly derived from the TADs or based on the CNV itself.
         The output is a numpy boolean feature vector."""
         features = [min(self.annotation_distances['TAD_boundaries']),min(self.annotation_distances['genes'],default=np.nan),min(self.annotation_distances['enhancers'],default=np.nan)]
-        return np.array(features,dtype=int)
+        return np.array(features,dtype=float)
 
     def get_extended_continuous_features(self):
         """Returns extended continuous features which are either directly derived from the TADs or based on the CNV itself.
         The output is a numpy boolean feature vector."""
-        pLI = np.nan
+        LOEUF = np.nan
         HI = np.nan
         phastcon = np.nan
         Log_odd_HI = np.nan
         try:
-            HIs  = [float(gene.data['HI']) for gene in self.annotations['genes']]
+            overlapping_genes = np.array(self.annotations['genes'])[np.where(np.array(self.annotation_distances['genes']) == 0)]
+            HIs  = [float(gene.data['HI']) for gene in overlapping_genes]
             HSs = [1-hi for hi in HIs]
-            HI_division = np.divide(np.prod(HIs),np.prod(HSs))
+            HI_division = np.divide(1-np.prod(HSs),np.prod(HSs))
             if HI_division != 0:
                 Log_odd_HI = np.log(HI_division)
-            pLI = float(self.annotations['genes'][np.argmin(self.annotation_distances['genes'])].data['pLI'])
+            LOEUF = float(self.annotations['genes'][np.argmin(self.annotation_distances['genes'])].data['LOEUF'])
             HI = float(self.annotations['genes'][np.argmin(self.annotation_distances['genes'])].data['HI'])
             phastcon = float(self.annotations['enhancers'][np.argmin(self.annotation_distances['enhancers'])].data['Phastcon'])
         except (ValueError,KeyError,IndexError) as e:
             err_message = e
 
-        features = [min(self.annotation_distances['TAD_boundaries']),min(self.annotation_distances['genes'],default=np.nan),min(self.annotation_distances['enhancers'],default=np.nan),min(self.annotation_distances['DDG2P'],default=np.nan),pLI,phastcon,HI,min(self.annotation_distances['CTCF'],default=np.nan),Log_odd_HI]
+        features = [min(self.annotation_distances['TAD_boundaries']),min(self.annotation_distances['genes'],default=np.nan),min(self.annotation_distances['enhancers'],default=np.nan),min(self.annotation_distances['DDG2P'],default=np.nan),LOEUF,phastcon,HI,min(self.annotation_distances['CTCF'],default=np.nan),Log_odd_HI]
         return np.array(features,dtype=float)

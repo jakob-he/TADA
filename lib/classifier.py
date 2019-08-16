@@ -48,40 +48,50 @@ class Classifier():
         self.scaler = scaler
         self.imputer = imputer
 
-    def feature_selection(self,train_set,feature_type,save=False,output_dir='./'):
+    def feature_selection(self,train_set,test_set,feature_type,save=False,output_dir='./'):
         """Visulaizes the correlation in between the independent feateure and the class labels."""
-        # merge independent and dependent variables
-        merged_df = train_set[0].copy()
-        merged_df['label'] = train_set[1].copy()
+        # merge training and test data
+        merged_df = pd.concat([train_set[0],test_set[0]])
+
+        merged_labels = pd.concat([train_set[1],test_set[1]])
 
         # compute Pearson correlation between features
-        plt.figure(figsize=(12,10))
-
         if 'binary' in feature_type:
             cor = merged_df.corr(utils.phi_coeff)
         else:
             cor = merged_df.corr()
 
-        sns.heatmap(cor, annot=True, cmap=plt.cm.Reds)
-        plt.title('Pairwise Pearson Correlation Values')
+        plt.figure(figsize=(12,12))
+        sns.heatmap(cor, annot=True, cbar=False, cmap=plt.cm.Greens,annot_kws={"size": 20})
+        plt.tick_params(labelsize=15)
+        plt.yticks(np.arange(train_set[0].shape[1])+0.5, va="center")
+        plt.tight_layout()
         plt.savefig(pathlib.Path(output_dir) / f'{self.name}_feature_correlations.png')
 
-        # compute correlation with the output variable
-        cor_target = abs(cor['label'])
+        #compute the partial correlation for all features
+        P_corr = utils.partial_corr(merged_df,feature_type)
+        plt.figure(figsize=(12,12))
+        sns.heatmap(P_corr, annot=True, cbar=False,cmap=plt.cm.Greens, annot_kws={"size": 20})
+        plt.tick_params(labelsize=15)
+        plt.yticks(np.arange(train_set[0].shape[1])+0.5, va="center")
+        plt.tight_layout()
+        plt.savefig(pathlib.Path(output_dir) / f'{self.name}_feature_partial_correlations.png')
 
-        # report highly correlated features
-        relevant_features = cor_target[cor_target>0.5]
-        print(f'Features with correlation larger than 0.5: {relevant_features}')
+        #plot partial correlation as node graph
+        fig = plotting.plot_correlation_node_graph(P_corr)
+        fig.savefig(pathlib.Path(output_dir) / f'{self.name}_correlation_node_graph.png',bbox_inches='tight')
 
         # PCA
         plt.figure(figsize=(12,10))
         pca = PCA(n_components=2)
-        projected = pca.fit_transform(merged_df.drop(['label'],axis=1))
-        colors = ['red' if label else 'green' for label in merged_df['label']]
+        projected = pca.fit_transform(merged_df)
+        colors = ['red' if label else 'green' for label in merged_labels]
         plt.scatter(projected[:, 0], projected[:, 1],
                     c=colors, edgecolor='none', alpha=0.05)
         plt.xlabel('PC 1')
         plt.ylabel('PC 2')
+        plt.yticks(np.arange(train_set[0].shape[1])+0.5, va="center")
+        plt.tight_layout()
         plt.savefig(pathlib.Path(output_dir) / f'{self.name}_PCA.png')
 
 
@@ -118,7 +128,7 @@ class Classifier():
             print(classification_report(test_set[1],y_pred,target_names=self.classes))
 
             # plot confusion matrix
-            plotting.plot_confusion_matrix(test_set[1],y_pred,classes=['Non-pathogenic','Pathogenic'])
+            plotting.plot_confusion_matrix(test_set[1],y_pred,classes=['Non-pathogenic','Pathogenic'],cmap=plt.cm.Greens)
             if save:
                 plt.tight_layout()
                 plt.savefig(pathlib.Path(output_dir) / f'{self.name}_Confusion_Matrix.png')
@@ -131,27 +141,32 @@ class Classifier():
                 # IMPOPRTANT! to be able to compare the coefficients all the features have to be on the same scale.
                 if self.name == 'rf' or self.name == 'brf':
                     coef = self.clf.feature_importances_
+                    ylabel = 'Feature Importance'
                 else:
                     coef = self.clf.coef_[0]
+                    ylabel = 'Model Coefficients'
                 plt.figure(figsize=(12,10))
                 feature_index = np.arange(len(coef))
-                plt.bar(feature_index,coef)
-                plt.title('Coefficients')
-                plt.xlabel('Features')
-                plt.xticks(ticks=feature_index,labels=test_set[0].columns)
+                plt.bar(feature_index,coef,color='#2c7056')
+                plt.ylabel(ylabel,fontsize=15)
+                plt.tick_params(labelsize=15)
+                if len(coef) < 5:
+                    plt.xticks(ticks=feature_index,labels=test_set[0].columns)
+                else:
+                    plt.xticks(ticks=feature_index,labels=test_set[0].columns, rotation='vertical')
                 if save:
                     plt.tight_layout()
                     plt.savefig(pathlib.Path(output_dir) / f'{self.name}_Coefficients.png')
 
                 # plot the roc curve
                 plt.figure(figsize=(12,10))
-                plt.step(recall, precision, color='b', alpha=0.2, where='post')
-                plt.fill_between(recall, precision, alpha=0.2, color='b', step='post')
-                plt.xlabel('Recall')
-                plt.ylabel('Precision')
+                plt.step(recall, precision, color='#2c7056', alpha=0.2, where='post')
+                plt.fill_between(recall, precision, alpha=0.2, color='#2c7056', step='post')
+                plt.xlabel('Recall',fontsize=15)
+                plt.ylabel('Precision',fontsize=15)
                 plt.ylim([0.0, 1.05])
                 plt.xlim([0.0, 1.0])
-                plt.title('2-class Precision-Recall curve')
+                plt.tick_params(labelsize=15)
                 if save:
                     plt.tight_layout()
                     plt.savefig(pathlib.Path(output_dir) / f'{self.name}_ROC_Curve.png')

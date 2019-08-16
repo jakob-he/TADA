@@ -25,43 +25,50 @@ def main():
 
     tads_with_pli_genes = {'1':[],'0.9':[],'0.5':[],'0.1':[],'0':[]}
     tads_with_conserved_enhancer = {'1':[],'0.9':[],'0.5':[],'0.1':[],'0':[]}
-    tads_without_genes = []
-    tads_without_enhancer = []
+    tads_without_functional_elements = []
     for chrom in tad_dict:
         for tad in tad_dict[chrom]:
-            if tad.genes:
-                pLIs = [float(gene.data['pLI']) if gene.data['pLI']!='NA' else 0 for gene in tad.genes]
-                for threshold in tads_with_pli_genes:
-                    if any(pLI >= float(threshold) for pLI in pLIs):
-                        tads_with_pli_genes[threshold].append(tad)
-            if tad.enhancers:
-                conservation_scores =  [float(enhancer.data['Phastcon']) if enhancer.data['Phastcon']!='None' else 0 for enhancer in tad.enhancers]
-                for threshold in tads_with_conserved_enhancer:
-                    if any(phastcon >= float(threshold) for phastcon in conservation_scores):
-                        tads_with_conserved_enhancer[threshold].append(tad)
-            if not tad.genes:
-                tads_without_genes.append(tad)
-            if not tad.enhancers:
-                tads_without_enhancer.append(tad)
+            if tad.annotations['genes'] or tad.annotations['enhancers']:
+                if tad.annotations['genes']:
+                    pLIs = [float(gene.data['pLI']) if gene.data['pLI'] and gene.data['pLI']!='NA' else 0 for gene in tad.annotations['genes']]
+                    for threshold in tads_with_pli_genes:
+                        if any(pLI >= float(threshold) for pLI in pLIs):
+                            tads_with_pli_genes[threshold].append(tad)
+                if tad.annotations['enhancers']:
+                    conservation_scores =  [float(enhancer.data['Phastcon']) if enhancer.data['Phastcon']!='None' else 0 for enhancer in tad.annotations['enhancers']]
+                    for threshold in tads_with_conserved_enhancer:
+                        if any(phastcon >= float(threshold) for phastcon in conservation_scores):
+                            tads_with_conserved_enhancer[threshold].append(tad)
+            else:
+                tads_without_functional_elements.append(tad)
+
+    for key,item in tads_with_pli_genes.items():
+        print(f'{key}:{len(item)}')
+
+    for key,item in tads_with_conserved_enhancer.items():
+        print(f'{key}:{len(item)}')
+
+    print(len(tads_without_functional_elements))
+
+    for tad in tads_without_functional_elements:
+        print(tad)
 
 
 
 
 
-    #for threshold, tads in tads_with_pli_genes.items():
-    #    utils.to_bed(tads,pathlib.Path(f'tads_with_pli_{threshold}_genes.bed'),label=f'TADs_with_pLI_{threshold}_genes')
-
-    #for threshold, tads in tads_with_conserved_enhancer.items():
-    #    utils.to_bed(tads,pathlib.Path(f'tads_with_phastcon_{threshold}_enhancer.bed'),label=f'TADs_with_phastcon_{threshold}_enhancer')
-
-    #utils.to_bed(tads_without_functional_elements,pathlib.Path(f'tads_without_functional_elements.bed'),label='tads_without_functional_elements')
-    print(len(tads_without_genes))
-    print(len(tads_without_enhancer))
-
-
-
-
-
+    # for threshold, tads in tads_with_pli_genes.items():
+    #     utils.to_bed(tads,pathlib.Path(f'tads_with_pli_{threshold}_genes.bed'),label=f'TADs_with_pLI_{threshold}_genes')
+    #
+    # for threshold, tads in tads_with_conserved_enhancer.items():
+    #     utils.to_bed(tads,pathlib.Path(f'tads_with_phastcon_{threshold}_enhancer.bed'),label=f'TADs_with_phastcon_{threshold}_enhancer')
+    #
+    # utils.to_bed(tads_without_functional_elements,pathlib.Path(f'tads_without_functional_elements.bed'),label='tads_without_functional_elements')
+    #
+    #
+    #
+    #
+    #
 
 
 

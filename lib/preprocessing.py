@@ -15,25 +15,32 @@ import pathlib
 import pickle
 import lib.plotting as plotting
 
-def create_feature_df(cnv_dict,feature_type):
+def create_feature_df(cnv_dict,feature_type,csv=False):
     """Creates a pandas Dataframe containing cnvs as rows and features as columns"""
     #get features for each CNV
     if feature_type=='basic_binary':
-        features = ['Boundary Breaking','Gene Overlap','Enhancer Overlap']
+        features = ['Boundary Overlap','Gene Overlap','Enhancer Overlap']
     if feature_type=='extended_binary':
-        features = ['Boundary Breaking','Gene Overlap','Enhancer Overlap','DDG2P Genes Overlap','CTCF','TADs with high pLI','TADs with high Phastcon']
+        features = ['Boundary Overlap','Gene Overlap','Enhancer Overlap','DDG2P Gene Overlap','CTCF Overlap']
     if feature_type=='basic_continuous':
         features = ['Boundary Distance','Gene Distance','Enhancer Distance']
     if feature_type=='extended_continuous':
-        features = ['Boundary Distance','Gene Distance','Enhancer Distance','DDG2P distance','gene pLI','enhancer conservation','HI score gene','CTCF distance','HI LogOdds Score']
+        features = ['Boundary Distance','Gene Distance','Enhancer Distance','DDG2P Distance','Gene LOEUF','Enhancer conservation','Gene HI','CTCF Distance','HI LogOdds Score']
 
     cnv_features = []
-    for chrom in cnv_dict:
-        for cnv in cnv_dict[chrom]:
-            if cnv.tads:
-                cnv_features.append(cnv.annotate(feature_type))
+    if csv:
+        for chrom in cnv_dict:
+            for cnv in cnv_dict[chrom]:
+                if cnv.tads:
+                    cnv_features.append(np.append([cnv.chr,cnv.start,cnv.end],cnv.annotate(feature_type)))
+        feature_df = pd.DataFrame(data=cnv_features,columns=['CHR','START','END'] + features)
+    else:
+        for chrom in cnv_dict:
+            for cnv in cnv_dict[chrom]:
+                if cnv.tads:
+                    cnv_features.append(cnv.annotate(feature_type))
 
-    feature_df = pd.DataFrame(data=cnv_features,columns=features)
+        feature_df = pd.DataFrame(data=cnv_features,columns=features)
     return feature_df
 
 def scale_feature_df(X,scaler):
@@ -96,13 +103,15 @@ def create_stratified_training_and_test_set(cnv_dict_1,cnv_dict_2,feature_type,o
 
     # imput missing values.
     # scale continuous features.
+
+    imp = SimpleImputer(missing_values=np.nan, strategy='mean')
+    scaler = MinMaxScaler()
     #TODO: Adapt this for validation sets.
     if 'continuous' in feature_type:
         # Create our imputer to replace missing values with the mean e.g.
-        imp = SimpleImputer(missing_values=np.nan, strategy='median')
         imp = imp.fit(X_train)
 
-        scaler = RobustScaler()
+
         scaler = scaler.fit(X_train)
 
         X_train = scale_and_impute_df(X_train,scaler, imp)
