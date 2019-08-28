@@ -48,8 +48,6 @@ def run(args):
         feature_df.to_csv(output_path.stem + '.csv',sep='\t',header=True,index=False)
 
 
-
-
 def main():
     #parse input arguments
     args = argparser()

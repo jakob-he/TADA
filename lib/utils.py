@@ -14,7 +14,6 @@ import pandas as pd
 from scipy import stats, linalg
 
 
-
 def objects_from_file(path, cls_string, column_names=[], **kwargs):
     """Load a BED file and return a list of Bed objects""
     Args:
@@ -35,6 +34,8 @@ def objects_from_file(path, cls_string, column_names=[], **kwargs):
         if not type(line) == str:
             line = line.decode('utf-8')
         #handle headers of bed CNV files
+        if line.startswith('##'):
+            continue
         if line.startswith('#'):
             column_names = line.strip().split('\t')[3:]
             continue
@@ -54,7 +55,7 @@ def validate_file(path):
 
     # check if path is a bed or txt file
     # TODO this is just prelimenary check
-    if path.suffix not in ['.bed','.txt','.gz']:
+    if path.suffix not in ['.bed','.txt','.gz','.vcf']:
         raise Exception(f'{path} is not a bed,txt or gz file')
 
     return path

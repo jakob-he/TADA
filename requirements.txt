@@ -1,2 +1,7 @@
 pandas
-pyBigWig
+scipy
+sklearn
+imblearn
+matplotlib
+seaborn
+networkx

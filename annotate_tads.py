@@ -37,7 +37,7 @@ def run(args):
 
     # Annotate TADs with overlapping enhancer and genes
     annotated_tads = utils.create_annotated_tad_dict(
-        tad_dict, annotation_dicts,annotate=True)
+        tad_dict, annotation_dicts)
 
     return annotated_tads
 

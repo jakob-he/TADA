@@ -1,12 +1,10 @@
 import enum
 
-from . import tad, gene, enhancer, cnv, bed
+from . import tad, cnv, bed
 
 
 class BedClass(enum.Enum):
     TAD = enum.auto()
-    GENE = enum.auto()
-    ENHANCER = enum.auto()
     CNV = enum.auto()
     BED = enum.auto()
 
@@ -22,10 +20,6 @@ class BedClass(enum.Enum):
         """Get the associated class for the given value."""
         if self == self.TAD:
             return tad.Tad
-        elif self == self.GENE:
-            return gene.Gene
-        elif self == self.ENHANCER:
-            return enhancer.Enhancer
         elif self == self.CNV:
             return cnv.CNV
         elif self == self.BED:

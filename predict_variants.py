@@ -17,12 +17,13 @@ import matplotlib.pyplot as plt
 def argparser():
     # parse inputs
     parser = argparse.ArgumentParser('Full classification between pathogenic and non pathogenic variants with variable features.')
-    parser.add_argument('-v','--variants', help='Bed formatted Variant file.')
+    parser.add_argument('-v','--variants', help='BED or VCF file of CNVs.')
     parser.add_argument('-t','--tads', help='Pickeled file with annotated TADs.')
     parser.add_argument('-m','--model', help='pickled scikit model which is supposed to be used for classification.')
     parser.add_argument('-o','--output', help='Output location.')
     parser.add_argument('-l','--labeled',action='store_true',help='True if variants are labeled with column "label".')
     parser.add_argument('-f','--feature', help='Feature set. Options: \n basic_binary \n extended binary \n basic continuous \n extended continuous')
+    parser.add_argument('-csv','--csv', action='store_true', help='Return CSV file with the pathogencity odds and functional annotation of each CNV.')
     return parser.parse_args()
 
 
@@ -55,22 +56,21 @@ def run(args):
                 if cnv.tads:
                     y.append(int(cnv.data['LABEL']))
 
-    # get scaled feature df
+    # get feature df
     feature_df = preprocessing.create_feature_df(annotated_cnvs, args.feature)
 
-    # plot feature df
-    # fig, axes = plt.subplots(ncols=feature_df.shape[1],figsize=(20,5))
-    # for ax, col in zip(axes, feature_df.columns):
-    #     sns.distplot(feature_df[col],ax=ax)
-    # plt.tight_layout()
-    # plt.show()
-
+    # scale features
     if 'continuous' in args.feature:
         scaled_feature_df = preprocessing.scale_and_impute_df(feature_df,model.scaler, model.imputer)
 
 
     test_set = [scaled_feature_df, np.array(y)]
     y_pred_scores = model.test(test_set,save=True,plot=False,output_dir=args.output)
+
+    if args.csv:
+        feature_df = preprocessing.create_feature_df(annotated_cnvs,args.features,csv=True)
+        feature_df['Predicted Pathogencity'] = y_pred_scores
+        feature_df.to_csv(output_path.stem + '.csv',sep='\t',header=True,index=False)
 
 
 def main():

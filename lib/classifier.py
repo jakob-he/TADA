@@ -95,7 +95,7 @@ class Classifier():
         plt.savefig(pathlib.Path(output_dir) / f'{self.name}_PCA.png')
 
 
-    def train(self,train_set,output_dir='./'):
+    def train(self,train_set,output_dir='./',cv=True):
         skf = StratifiedKFold(n_splits=10)
         print('training with 10-fold CV...')
 
@@ -104,12 +104,20 @@ class Classifier():
             train_set = [set.values for set in train_set]
 
         average_precision = []
-        for train, test in skf.split(train_set[0],train_set[1]):
-            self.clf = self.clf.fit(train_set[0][train],train_set[1][train])
-            y_pred = self.clf.predict_proba(train_set[0][test])
-            avg_prec_sc = average_precision_score(train_set[1][test],y_pred[:, 1])
+        if cv:
+            for train, test in skf.split(train_set[0],train_set[1]):
+                self.clf = self.clf.fit(train_set[0][train],train_set[1][train])
+                y_pred = self.clf.predict_proba(train_set[0][test])
+                avg_prec_sc = average_precision_score(train_set[1][test],y_pred[:, 1])
+                average_precision.append(avg_prec_sc)
+                print(f'Average Precision: {avg_prec_sc}')
+        else:
+            self.clf = self.clf.fit(train_set[0],train_set[1])
+            y_pred = self.clf.predict_proba(train_set[0])
+            avg_prec_sc = average_precision_score(train_set[1],y_pred[:, 1])
             average_precision.append(avg_prec_sc)
             print(f'Average Precision: {avg_prec_sc}')
+
 
         print(f'10-fold CV Average Precision Mean: {np.mean(average_precision)}')
         self.trained = True
@@ -127,16 +135,15 @@ class Classifier():
             #report classification metrics
             print(classification_report(test_set[1],y_pred,target_names=self.classes))
 
-            # plot confusion matrix
-            plotting.plot_confusion_matrix(test_set[1],y_pred,classes=['Non-pathogenic','Pathogenic'],cmap=plt.cm.Greens)
-            if save:
-                plt.tight_layout()
-                plt.savefig(pathlib.Path(output_dir) / f'{self.name}_Confusion_Matrix.png')
-
             # calculate roc curve
             precision, recall, thresholds = precision_recall_curve(test_set[1], y_pred_scores)
 
             if plot:
+                # plot confusion matrix
+                plotting.plot_confusion_matrix(test_set[1],y_pred,classes=['Non-pathogenic','Pathogenic'],cmap=plt.cm.Greens)
+                if save:
+                    plt.tight_layout()
+                    plt.savefig(pathlib.Path(output_dir) / f'{self.name}_Confusion_Matrix.png')
                 # plot feature importance
                 # IMPOPRTANT! to be able to compare the coefficients all the features have to be on the same scale.
                 if self.name == 'rf' or self.name == 'brf':
