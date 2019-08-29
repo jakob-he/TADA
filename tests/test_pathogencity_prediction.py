@@ -16,7 +16,6 @@ class TestPathogencityPrediction(unittest.TestCase):
         with pathlib.Path('tests/test_data/test_cnvs_nonpatho.p').open('rb') as non_pathogenic_cnvs:
             non_patho_cnvs = pickle.load(non_pathogenic_cnvs)
 
-
         # get feature df
         feature_df = preprocessing.create_feature_df(non_patho_cnvs, 'basic_binary')
 

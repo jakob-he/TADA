@@ -12,10 +12,10 @@ import lib.preprocessing as preprocessing
 import pandas as pd
 
 def argparser():
-    parser = argparse.ArgumentParser(description="Annotate a set of CNVs.")
-    parser.add_argument('-t', '--tads', default='annotated_TADs.p',
-                        help='Path to the pickeled TAD file.')
-    parser.add_argument('-c', '--cnvs', help='Path to the CNV file.')
+    parser = argparse.ArgumentParser(description="Annotate a set of CNVs. Run annotate_cnvs -h for more details.")
+    parser.add_argument('-t', '--tads',
+                        help='Path to the pickeled TAD file.', required=True)
+    parser.add_argument('-c', '--cnvs', help='Path to the CNV file.', required=True)
     parser.add_argument('-vcf', '--vcf', action='store_true', help='Needs to be set if the CNV file is a VCF with the location at the second position.')
     parser.add_argument('-p', '--pickle', action='store_false', help='Save annotated CNV objects as pickled file. Default is True.')
     parser.add_argument('-csv', '--csv', action='store_true', help='Save a CSV file in additon to the pickled object. Specific features sets can be definied with -f.')

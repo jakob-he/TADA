@@ -1,0 +1,6 @@
+[console_scripts]
+annotate_cnvs = annotate_cnvs:main
+annotate_tads = annotate_tads:main
+classification_run = classification_run:main
+predict_variants = predict_variants:main
+

@@ -12,12 +12,12 @@ from lib.classifier import Classifier
 
 def argparser():
     # parse inputs
-    parser = argparse.ArgumentParser('Full classification between pathogenic and non pathogenic variants with variable features.')
-    parser.add_argument('-c1','--cnvs1', help='Non pathogenic pickeled CNV set.')
-    parser.add_argument('-c2','--cnvs2', help='Pathogenic pickeled CNV set.')
-    parser.add_argument('-f','--feature', help='Feature set. Options: \n basic_binary \n extended binary \n basic continuous \n extended continuous')
+    parser = argparse.ArgumentParser('Full classification between pathogenic and non pathogenic variants with variable features. Run classification_run -h for more details')
+    parser.add_argument('-c1','--cnvs1', help='Non pathogenic pickeled CNV set.', required=True)
+    parser.add_argument('-c2','--cnvs2', help='Pathogenic pickeled CNV set.', required=True)
+    parser.add_argument('-f','--feature', help='Feature set. Options: \n basic_binary \n extended binary \n basic continuous \n extended continuous', required=True)
     parser.add_argument('-fs','--feature_selection',help='Enables the generation of correlation and PCA figures for feature seletion',action='store_true')
-    parser.add_argument('-cls','--cls', help='Type of classifier. Allowed options are: \n lr = Logistic Regression')
+    parser.add_argument('-cls','--cls', help='Type of classifier. Allowed options are: \n lr = Logistic Regression', default='rf')
     parser.add_argument('-kw','--kwargs',default={},help='Keyword arguments for the classifier. They have to be in the flowwing format "keyword_1=arg_1,keyword_2=arg_2". Keywords that should be interpreteted as strings have to be in double quotes.')
     parser.add_argument('-o','--output', help='Output location.')
     return parser.parse_args()

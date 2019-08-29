@@ -16,13 +16,13 @@ import matplotlib.pyplot as plt
 
 def argparser():
     # parse inputs
-    parser = argparse.ArgumentParser('Full classification between pathogenic and non pathogenic variants with variable features.')
-    parser.add_argument('-v','--variants', help='BED or VCF file of CNVs.')
-    parser.add_argument('-t','--tads', help='Pickeled file with annotated TADs.')
-    parser.add_argument('-m','--model', help='pickled scikit model which is supposed to be used for classification.')
+    parser = argparse.ArgumentParser('Full classification between pathogenic and non pathogenic variants with variable features. Run predict_variants -h for more details.')
+    parser.add_argument('-v','--variants', help='BED or VCF file of CNVs.', required=True)
+    parser.add_argument('-t','--tads', help='Pickeled file with annotated TADs.', required=True)
+    parser.add_argument('-m','--model', help='pickled scikit model which is supposed to be used for classification.', required=True)
     parser.add_argument('-o','--output', help='Output location.')
     parser.add_argument('-l','--labeled',action='store_true',help='True if variants are labeled with column "label".')
-    parser.add_argument('-f','--feature', help='Feature set. Options: \n basic_binary \n extended binary \n basic continuous \n extended continuous')
+    parser.add_argument('-f','--feature', help='Feature set. Options: \n basic_binary \n extended binary \n basic continuous \n extended continuous', required=True)
     parser.add_argument('-csv','--csv', action='store_true', help='Return CSV file with the pathogencity odds and functional annotation of each CNV.')
     return parser.parse_args()
 

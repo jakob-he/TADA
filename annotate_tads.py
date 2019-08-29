@@ -6,19 +6,17 @@ import pathlib
 
 # own libraries
 from lib.tad import Tad
-from lib.gene import Gene
-from lib.enhancer import Enhancer
 import lib.utils as utils
 
 
 def argparser():
-    parser = argparse.ArgumentParser(description="Annotate TADs.")
-    parser.add_argument('-t', '--tads', default='data/TAD/hg38/H1-ESC_Dixon_2015-raw_TADs.txt',
-                        help='Path to the TAD boundary BED file.')
+    parser = argparse.ArgumentParser(description="Annotate TADs. Run annotate_tads -h for more details")
+    parser.add_argument('-t', '--tads',
+                        help='Path to the TAD boundary BED file.', required=True)
     parser.add_argument(
         '-an','--annotation_names',nargs='*',help='Names of the annotations (e.g. genes).')
     parser.add_argument('-af','--annotation_files',nargs='*',help='Paths to the annotation files.')
-    parser.add_argument('-o','--output', default='annotated_TADs.p',help='Output file.')
+    parser.add_argument('-o','--output', default='annotated_TADs.p', help='Output file.')
     return parser.parse_args()
 
 

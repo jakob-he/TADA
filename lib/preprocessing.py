@@ -6,14 +6,11 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler, OneHotEncoder, RobustScaler, MaxAbsScaler
 from sklearn.impute import SimpleImputer
 
-# tensorflow classifier
-#from lib.lr import LR
-
 #testing libararies
 import argparse
 import pathlib
 import pickle
-import lib.plotting as plotting
+from . import plotting
 
 def create_feature_df(cnv_dict,feature_type,csv=False):
     """Creates a pandas Dataframe containing cnvs as rows and features as columns"""
