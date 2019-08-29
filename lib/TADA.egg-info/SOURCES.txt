@@ -1,9 +1,0 @@
-README.md
-setup.py
-lib/TADA.egg-info/PKG-INFO
-lib/TADA.egg-info/SOURCES.txt
-lib/TADA.egg-info/dependency_links.txt
-lib/TADA.egg-info/entry_points.txt
-lib/TADA.egg-info/not-zip-safe
-lib/TADA.egg-info/requires.txt
-lib/TADA.egg-info/top_level.txt

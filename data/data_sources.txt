@@ -1,7 +1,0 @@
-TAD: 3d Genome browser called with the DI from Dixon et al, 2012.
-ENHANCER: FANTOM5 enhancer from CAGE data. Phase1 and 2.
-GENES: wget -qO- ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_28/gencode.v28.annotation.gff3.gz \
-    | gunzip --stdout - \
-    | awk '$3 == "gene"' - \
-    | convert2bed -i gff - \
-    > genes.bed
