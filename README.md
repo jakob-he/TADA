@@ -9,7 +9,7 @@ The TAD annotation (TADA) tools is designed to annotate CNVs based on functional
 Installation
 ------------
 
-- Install TADA via GitHub::
+Install TADA via GitHub::
 
      git clone https://github.com/jakob-he/TADA
      python setup.py install
