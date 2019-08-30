@@ -33,7 +33,7 @@ zcat EEE_SV-Pop_1.ALL.sites.20181204.bed.gz | awk -F "\t" '{if(($19=="MAJOR" || 
 ./liftOver -bedPlus=3 EEE_SV-Pop_1.ALL.sites.20181204.shared.major.bed hg38ToHg19.over.chain.gz EEE_SV-Pop_1.ALL.sites.20181204.shared.major.hg19.bed EEE_SV-Pop_1.ALL.sites.20181204.shared.major.liftoverfailed.bed
 
 # Combinedfrequenct variants
-cat EEE_SV-Pop_1.ALL.sites.20181204.shared.major.hg19.bed gnomad_v2_sv.sites.PASS.frequent.fixedlines.formatted.bed > combined.frequenct.Eichler.GnomAD.bed
+cat EEE_SV-Pop_1.ALL.sites.20181204.shared.major.hg19.bed gnomad_v2_sv.sites.PASS.frequent.fixedlines.formatted.bed > combined.frequent.Eichler.GnomAD.bed
 
 ## Genes
 

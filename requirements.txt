@@ -5,3 +5,6 @@ imblearn
 matplotlib
 seaborn
 networkx
+sphinx
+ipykernel
+nbsphinx

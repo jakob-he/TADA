@@ -6,3 +6,6 @@ data/*
 
 #Ignore all .pyc data
 *.pyc
+
+#Ignore the build in docs
+docs/build

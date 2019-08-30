@@ -13,14 +13,14 @@ import pandas as pd
 
 def argparser():
     parser = argparse.ArgumentParser(description="Annotate a set of CNVs. Run annotate_cnvs -h for more details.")
-    parser.add_argument('-t', '--tads',
-                        help='Path to the pickeled TAD file.', required=True)
+    parser.add_argument('-t', '--tads',default='data/default_annotated_TADs.p',
+                        help='Path to the pickeled TAD file.')
     parser.add_argument('-c', '--cnvs', help='Path to the CNV file.', required=True)
     parser.add_argument('-vcf', '--vcf', action='store_true', help='Needs to be set if the CNV file is a VCF with the location at the second position.')
     parser.add_argument('-p', '--pickle', action='store_false', help='Save annotated CNV objects as pickled file. Default is True.')
-    parser.add_argument('-csv', '--csv', action='store_true', help='Save a CSV file in additon to the pickled object. Specific features sets can be definied with -f.')
+    parser.add_argument('-csv', '--csv', action='store_false', help='Save a CSV file in additon to the pickled object. Specific features sets can be definied with -f.')
     parser.add_argument('-f','--features',default='extended_continuous',help='Features for the CSV file. TADs need to be annotated with the corresponding features.')
-    parser.add_argument('-o', '--output', default='annotated_CNVS.p', help='Output File.')
+    parser.add_argument('-o', '--output', default='./', help='Output File.')
     return parser.parse_args()
 
 
@@ -40,12 +40,12 @@ def run(args):
     annotated_cnvs = utils.annotate_cnvs(tads,cnvs)
 
     #save raw CNV object as pickle file
-    with open(output_path, "wb") as output:
+    with open(output_path / 'Annotated_CNVs.p', "wb") as output:
         pickle.dump(annotated_cnvs, output)
 
     if args.csv:
         feature_df = preprocessing.create_feature_df(annotated_cnvs,args.features,csv=True)
-        feature_df.to_csv(output_path.stem + '.csv',sep='\t',header=True,index=False)
+        feature_df.to_csv(output_path / 'Annotated_CNVs.csv',sep='\t',header=True,index=False)
 
 
 def main():
