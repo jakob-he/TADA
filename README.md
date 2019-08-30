@@ -1,7 +1,5 @@
-#TADA
-
-Getting Started
-===============
+TADA
+====
 
 Introduction
 ------------
