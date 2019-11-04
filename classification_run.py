@@ -45,8 +45,8 @@ def run(args):
         patho_cnvs = pickle.load(pathogenic_cnvs)
 
     # create test and training set
-    train_set, test_set, scaler, imputer = preprocessing.create_stratified_training_and_test_set(non_patho_cnvs,patho_cnvs,feature_type=args.feature,oneHot=False)
-    lr = Classifier(classifier=args.cls, imputer = imputer,scaler=scaler,**kwargs)
+    train_set, test_set = preprocessing.create_stratified_training_and_test_set(non_patho_cnvs,patho_cnvs,feature_type=args.feature,oneHot=False)
+    lr = Classifier(classifier=args.cls, **kwargs)
     if args.feature_selection:
         lr.feature_selection(train_set,test_set,args.feature,output_dir=args.output)
     lr.train(train_set,output_dir=args.output)

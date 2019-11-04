@@ -3,8 +3,7 @@
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import MinMaxScaler, OneHotEncoder, RobustScaler, MaxAbsScaler
-from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import OneHotEncoder
 
 #testing libararies
 import argparse
@@ -40,22 +39,7 @@ def create_feature_df(cnv_dict,feature_type,csv=False):
         feature_df = pd.DataFrame(data=cnv_features,columns=features)
     return feature_df
 
-def scale_feature_df(X,scaler):
-    X = pd.DataFrame(scaler.transform(X),columns=X.columns)
-    return X
-
-def impute_feature_df(X,imputer):
-    imputed_X = pd.DataFrame(imputer.transform(X))
-    imputed_X.columns = X.columns
-    imputed_X.index = X.index
-    return imputed_X
-
-def scale_and_impute_df(X,scaler,imputer):
-    imputed_X = impute_feature_df(X,imputer)
-    scaled_X = scale_feature_df(imputed_X,scaler)
-    return scaled_X
-
-def create_stratified_training_and_test_set(cnv_dict_1,cnv_dict_2,feature_type,oneHot=False,validation=False,exclude_features=[]):
+def create_stratified_training_and_test_set(cnv_dict_1,cnv_dict_2,feature_type,oneHot=False,exclude_features=[]):
     """Splits the merged feature dataframe of two CNV sets into a training set stratified by label."""
     # create feature dataframes for both cnv dicts
     df_0 = create_feature_df(cnv_dict_1,feature_type)
@@ -98,26 +82,4 @@ def create_stratified_training_and_test_set(cnv_dict_1,cnv_dict_2,feature_type,o
     # create training and test set stratified by class labels
     X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, random_state=42, stratify=Y)
 
-    # imput missing values.
-    # scale continuous features.
-
-    imp = SimpleImputer(missing_values=np.nan, strategy='mean')
-    scaler = MinMaxScaler()
-    #TODO: Adapt this for validation sets.
-    if 'continuous' in feature_type:
-        # Create our imputer to replace missing values with the mean e.g.
-        imp = imp.fit(X_train)
-
-
-        scaler = scaler.fit(X_train)
-
-        X_train = scale_and_impute_df(X_train,scaler, imp)
-        X_test = scale_and_impute_df(X_test,scaler, imp)
-
-    if validation:
-        # create validation and training set
-        X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2, random_state=42, stratify=y_train)
-
-        return ([X_train,y_train],[X_val,y_val],[X_test,y_test],scaler, imp)
-    else:
-        return ([X_train,y_train],[X_test,y_test],scaler, imp)
+    return ([X_train,y_train],[X_test,y_test])

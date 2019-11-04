@@ -4,8 +4,12 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from imblearn.ensemble import BalancedRandomForestClassifier
 
-# CV
+# preprocessing
+from sklearn.pipeline import Pipeline
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import cross_val_score
 
 # Feature selection
 from sklearn.decomposition import PCA
@@ -35,18 +39,15 @@ from . import plotting
 classifier_dict = {'lr':LogisticRegression,'rf':RandomForestClassifier,'brf':BalancedRandomForestClassifier}
 
 class Classifier():
-    def __init__(self, scaler, imputer, classifier='lr', name='',**kwargs):
+    def __init__(self, classifier='lr', name='',**kwargs):
         """Initialization of a new Classifier object. This requires the name of classifier."""
         if name:
             self.name = name
         else:
             self.name = classifier
-
-        self.clf = classifier_dict[classifier](**kwargs)
         self.classes = ['non-pathogenic','pathogenic']
+        self.pipeline = Pipeline(steps=([('imputer', SimpleImputer()), ('scaler', MinMaxScaler(feature_range=(-1,1))), ('cls', classifier_dict[classifier](**kwargs))]))
         self.trained = False
-        self.scaler = scaler
-        self.imputer = imputer
 
     def feature_selection(self,train_set,test_set,feature_type,save=False,output_dir='./'):
         """Visulaizes the correlation in between the independent feateure and the class labels."""
@@ -95,7 +96,7 @@ class Classifier():
         plt.savefig(pathlib.Path(output_dir) / f'{self.name}_PCA.png')
 
 
-    def train(self,train_set,output_dir='./',cv=True):
+    def train(self,train_set,output_dir='./'):
         skf = StratifiedKFold(n_splits=10)
         print('training with 10-fold CV...')
 
@@ -104,22 +105,11 @@ class Classifier():
             train_set = [set.values for set in train_set]
 
         average_precision = []
-        if cv:
-            for train, test in skf.split(train_set[0],train_set[1]):
-                self.clf = self.clf.fit(train_set[0][train],train_set[1][train])
-                y_pred = self.clf.predict_proba(train_set[0][test])
-                avg_prec_sc = average_precision_score(train_set[1][test],y_pred[:, 1])
-                average_precision.append(avg_prec_sc)
-                print(f'Average Precision: {avg_prec_sc}')
-        else:
-            self.clf = self.clf.fit(train_set[0],train_set[1])
-            y_pred = self.clf.predict_proba(train_set[0])
-            avg_prec_sc = average_precision_score(train_set[1],y_pred[:, 1])
-            average_precision.append(avg_prec_sc)
-            print(f'Average Precision: {avg_prec_sc}')
 
-
+        average_precision = cross_val_score(self.pipeline, train_set[0], train_set[1], cv=skf, scoring='average_precision')
         print(f'10-fold CV Average Precision Mean: {np.mean(average_precision)}')
+
+        self.pipeline.fit(train_set[0],train_set[1])
         self.trained = True
         # save model to pickle file
         with open(pathlib.Path(output_dir) / f'{self.name}_model.p','wb') as model_output:
@@ -129,10 +119,11 @@ class Classifier():
         print('testing...')
         if self.trained:
             # predict class labels and probabilities
-            y_pred = self.clf.predict(test_set[0])
-            y_pred_scores = self.clf.predict_proba(test_set[0])[:, 1]
+            y_pred = self.pipeline.predict(test_set[0])
+            y_pred_scores = self.pipeline.predict_proba(test_set[0])[:, 1]
 
             #report classification metrics
+            print(f'Average Precision on test-set: {average_precision_score(test_set[1],y_pred_scores)}')
             print(classification_report(test_set[1],y_pred,target_names=self.classes))
 
             # calculate roc curve
@@ -147,10 +138,10 @@ class Classifier():
                 # plot feature importance
                 # IMPOPRTANT! to be able to compare the coefficients all the features have to be on the same scale.
                 if self.name == 'rf' or self.name == 'brf':
-                    coef = self.clf.feature_importances_
+                    coef = self.pipeline['cls'].feature_importances_
                     ylabel = 'Feature Importance'
                 else:
-                    coef = self.clf.coef_[0]
+                    coef = self.pipeline['cls'].coef_[0]
                     ylabel = 'Model Coefficients'
                 plt.figure(figsize=(12,10))
                 feature_index = np.arange(len(coef))
