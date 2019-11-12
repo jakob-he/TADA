@@ -50,7 +50,7 @@ def run(args):
     if args.feature_selection:
         lr.feature_selection(train_set,test_set,args.feature,output_dir=args.output)
     lr.train(train_set,output_dir=args.output)
-    lr.test(test_set,save=True,plot=False,output_dir=args.output)
+    lr.test(test_set,save=True,plot=True,output_dir=args.output)
 
     # plot roc curve
     #plotting.plot_multiple_roc([lr],[test_set],save=True,output=pathlib.Path(args.output) / 'ROC_curve.png')

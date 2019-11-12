@@ -138,49 +138,50 @@ def reduce_dict(dictionary, keys):
     return {key: (dictionary[key] if key in dictionary else []) for key in keys}
 
 
-def create_annotated_tad_dict(tad_dict, annotation_dicts, annotate=False,feature_type='binary'):
-    """Annotates every TAD with the overlapping genes and enhancers.
-    For each TAD in a chromosome the function iterates through the sorted annotations as long as the
-    start position of any of the first annotations is less than the end position of the TAD.
+def create_annotated_bed_dict(bed_dict, annotation_dicts, annotate=False,filer_exons=False,feature_type='binary'):
+    """Annotates every BED flement with the overlapping annotation.
+    For each BED element in a chromosome the function iterates through the sorted annotations as long as the
+    start position of any of the first annotations is less than the end position of the BED element.
     If one of the elements satisfies this condition there are three options:
-        1. The element ends before the TAD -> discard it, since there is no overlapping TAD in the data set.
-        2. The element starts in or before the TAD and ends in the TAD -> Add to TADs elements and remove element from the list.
-        2. The element starts in or before the TAD and does not in the TAD -> Add to TAD elements but keep it for other TADs.
+        1. The annotation ends before the BED element -> discard it, since there is no overlapping BED element in the data set.
+        2. The annotation starts in or before the BED element and ends in the BED element -> Add to the BED element's annotations and remove annotation from the list.
+        2. The annotation starts in or before the BED element and does not end in the BED element -> Add to BED element's annotations but keep it for other BED elements.
 
     Args:
-        tad_dict: A dictionary with chromsomes as keys and the corresponding Tad elements as values.
+        bed_dict: A dictionary with chromsomes as keys and the corresponding BED elements as values.
         annotation_dict: A list of dictionaries with chromosomes as keys and the corresponding annotation elements as values.
     """
     # reduce genes and enhancers to chromsomes were tads are available
     annotation_dicts = {key:reduce_dict(
-        dictionary, tad_dict.keys()) for key, dictionary in annotation_dicts.items()}
+        dictionary, bed_dict.keys()) for key, dictionary in annotation_dicts.items()}
 
     # iterate through chromsomes
-    for chrom in tad_dict:
-        for tad in tad_dict[chrom]:
+    for chrom in bed_dict:
+        for bed_element in bed_dict[chrom]:
             annotation_queue = {}
 
             for annotation_name, annotation_dict in annotation_dicts.items():
-                tad.annotations[annotation_name] = []
+                bed_element.annotations[annotation_name] = []
                 annotation_queue[annotation_name] = []
 
-            while any(is_in(annotation_dict[chrom],tad) for annotation_dict in annotation_dicts.values()):
+            while any(is_in(annotation_dict[chrom],bed_element) for annotation_dict in annotation_dicts.values()):
                 for annotation_name, annotation_dict in annotation_dicts.items():
-                    if is_in(annotation_dict[chrom],tad):
-                        if annotation_dict[chrom][0].end < tad.start:
+                    if is_in(annotation_dict[chrom],bed_element):
+                        if annotation_dict[chrom][0].end < bed_element.start:
                             annotation_dict[chrom].pop(0)
-                        elif annotation_dict[chrom][0].end <= tad.end:
-                            tad.annotations[annotation_name].append(annotation_dict[chrom].pop(0))
-                        elif annotation_dict[chrom][0].end > tad.end:
-                            tad.annotations[annotation_name].append(annotation_dict[chrom][0])
+                        elif annotation_dict[chrom][0].end <= bed_element.end:
+                            bed_element.annotations[annotation_name].append(annotation_dict[chrom].pop(0))
+                        elif annotation_dict[chrom][0].end > bed_element.end:
+                            bed_element.annotations[annotation_name].append(annotation_dict[chrom][0])
                             annotation_queue[annotation_name].append(annotation_dict[chrom].pop(0))
 
             annotation_dict[chrom] = annotation_queue[annotation_name] + annotation_dict[chrom]
             if annotate:
-                # annotate TAD with binary features
-                tad.annotate(feature_type)
+                bed_element.annotate(feature_type)
+            if filer_exons:
+                bed_element.filter_exons()
 
-    return tad_dict
+    return bed_dict
 
 
 def annotate_cnvs(tad_dict, cnv_dict):

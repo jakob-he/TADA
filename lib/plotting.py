@@ -14,6 +14,8 @@ from itertools import permutations
 import matplotlib.pyplot as plt
 import seaborn as sns
 import networkx as nx
+from matplotlib.ticker import StrMethodFormatter
+
 
 def plot_confusion_matrix(y_true, y_pred, classes,
                           normalize=False,
@@ -61,6 +63,7 @@ def plot_confusion_matrix(y_true, y_pred, classes,
     fig.tight_layout()
     return ax
 
+
 def plot_size_dist(beds, output='./', plot_type='h', save=False):
     """Plots the size distribution of elements in a bed file.
     Args:
@@ -86,7 +89,8 @@ def plot_size_dist(beds, output='./', plot_type='h', save=False):
     else:
         plt.show()
 
-def plot_annotation_dist(beds, annotation, output='./',plot_type='h', save = False):
+
+def plot_annotation_dist(beds, annotation, output='./', plot_type='h', save=False):
     """Plots the distribution of an annotation in the bed file in a box plot.
     Args:
         beds: List of bed objects (e.g. genes).
@@ -97,10 +101,11 @@ def plot_annotation_dist(beds, annotation, output='./',plot_type='h', save = Fal
     """
     plt.figure()
     sns.set_style('whitegrid')
-    excpetions = ['None','NA']
-    annotations = [float(bed.data[annotation]) for bed in beds if not bed.data[annotation] in excpetions]
-    #calculate exact quartiles and other statistics
-    df = pd.DataFrame({annotation:annotations})
+    excpetions = ['None', 'NA']
+    annotations = [float(bed.data[annotation])
+                   for bed in beds if not bed.data[annotation] in excpetions]
+    # calculate exact quartiles and other statistics
+    df = pd.DataFrame({annotation: annotations})
     if plot_type == 'h':
         ax = sns.distplot(annotations, kde=True)
     elif plot_type == 'b':
@@ -114,6 +119,7 @@ def plot_annotation_dist(beds, annotation, output='./',plot_type='h', save = Fal
         plt.savefig(output / f'{annotation}_distribution.png')
     else:
         plt.show()
+
 
 def plot_tad_element_dist(tads, output='./', save=False, genes=True, enhancer=True):
     """Plots the distribution of the number of genes and enhancers in the list of Tads"""
@@ -132,8 +138,9 @@ def plot_tad_element_dist(tads, output='./', save=False, genes=True, enhancer=Tr
         elements = [tad.count_enhancer() for tad in tads]
 
     sns.set_style('whitegrid')
-    ax = sns.boxplot(x=np.arange(0,length), y=elements)
+    ax = sns.boxplot(x=np.arange(0, length), y=elements)
     return ax
+
 
 def plot_corr(df):
     '''Function plots a graphical correlation matrix for each pair of columns in the dataframe.
@@ -144,15 +151,16 @@ def plot_corr(df):
 
     corr = df.corr()
     sns.heatmap(corr,
-            xticklabels=corr.columns.values,
-            yticklabels=corr.columns.values)
+                xticklabels=corr.columns.values,
+                yticklabels=corr.columns.values)
     plt.tight_layout()
     plt.show()
 
-def plot_multiple_roc(classifiers:[Classifier],test_sets,save=False,output=''):
+
+def plot_multiple_roc(classifiers: [Classifier], test_sets, save=False, output=''):
     """Plots roc curve for multiple classifier."""
-    plt.figure(figsize=(12,10))
-    plt.plot([0, 1], [0, 1], linestyle='--',label='random classification')
+    plt.figure(figsize=(12, 10))
+    plt.plot([0, 1], [0, 1], linestyle='--', label='random classification')
     plt.ylabel('TPR')
     plt.xlabel('FPR')
     plt.title(f'ROC curve')
@@ -165,14 +173,15 @@ def plot_multiple_roc(classifiers:[Classifier],test_sets,save=False,output=''):
     else:
         plt.show()
 
-def plot_avg_prec_scores(scores,k,support=[],k_name='Allele Count Threshold',save=False,output=''):
+
+def plot_avg_prec_scores(scores, k, support=[], k_name='Allele Count Threshold', save=False, output=''):
     """Plots a line plot with average precision means for each fiven K"""
-    plt.figure(figsize=(12,10))
+    plt.figure(figsize=(12, 10))
 
     fig, ax1 = plt.subplots()
 
     color = 'tab:blue'
-    ax1.plot(k,scores,color=color)
+    ax1.plot(k, scores, color=color)
     ax1.set_ylabel('10-fold average precision mean', color=color)
     ax1.set_xlabel(k_name)
     ax1.set_xticks(k)
@@ -181,11 +190,9 @@ def plot_avg_prec_scores(scores,k,support=[],k_name='Allele Count Threshold',sav
     ax2 = ax1.twinx()
 
     color = 'tab:red'
-    ax2.plot(k,support,color=color)
+    ax2.plot(k, support, color=color)
     ax2.set_ylabel('Number of test variants', color=color)
     ax2.tick_params(axis='y', labelcolor=color)
-
-
 
     fig.tight_layout()
     if save:
@@ -193,34 +200,71 @@ def plot_avg_prec_scores(scores,k,support=[],k_name='Allele Count Threshold',sav
     else:
         plt.show()
 
+
 def plot_correlation_node_graph(cor):
     """Plots a node graph where nodes correspond to features and edges to correlations
     Args:
         cor = pandasDataFrame with pairwise correlation values.
     Output:
-        ax = matplotlib axis of the node graph.
+        fig = matplotlib figure of the node graph.
     """
     # Create edge dictionary
-    orig, dest, cors = zip(*[(cor.columns[row],cor.columns[col],cor.iloc[row][cor.columns[col]]) for row, col in permutations(range(0,cor.shape[1]),2) if cor.iloc[row][cor.columns[col]] >= 0.1])
+    orig, dest, cors = zip(*[(cor.columns[row], cor.columns[col], cor.iloc[row][cor.columns[col]])
+                             for row, col in permutations(range(0, cor.shape[1]), 2) if cor.iloc[row][cor.columns[col]] >= 0.1])
 
     # replace  spaces with newline in node descriptors
-    orig = [ori.replace(' ','\n') for ori in orig]
-    dest = [des.replace(' ','\n') for des in dest]
+    orig = [ori.replace(' ', '\n') for ori in orig]
+    dest = [des.replace(' ', '\n') for des in dest]
 
     # Build a dataframe for the edges
-    edge_df = pd.DataFrame({'from':orig,'to':dest})
+    edge_df = pd.DataFrame({'from': orig, 'to': dest})
 
     # Build the node graph
-    G=nx.from_pandas_edgelist(edge_df, 'from', 'to')
+    G = nx.from_pandas_edgelist(edge_df, 'from', 'to')
 
     # Graph with Custom nodes:
-    fig = plt.figure(figsize=(12,10))
-    pos=nx.spring_layout(G,scale=0.5)
-    nx.draw(G, pos=pos,with_labels=True, node_size=10000, node_color="#98db84", node_shape="o", alpha=0.7, linewidths=2,font_size=20,font_weight='bold',font_color='#000000')
+    fig = plt.figure(figsize=(12, 10))
+    pos = nx.spring_layout(G, scale=0.5)
+    nx.draw(G, pos=pos, with_labels=True, node_size=10000, node_color="#98db84", node_shape="o",
+            alpha=0.7, linewidths=2, font_size=20, font_weight='bold', font_color='#000000')
 
     edge_labels = {}
-    for idx,cor in enumerate(cors):
-        key = (orig[idx],dest[idx])
-        edge_labels[key] = round(cor,4)
-    nx.draw_networkx_edge_labels(G,pos,edge_labels=edge_labels,font_color='black',font_size=20,label_pos=0.5)
+    for idx, cor in enumerate(cors):
+        key = (orig[idx], dest[idx])
+        edge_labels[key] = round(cor, 4)
+    nx.draw_networkx_edge_labels(
+        G, pos, edge_labels=edge_labels, font_color='black', font_size=20, label_pos=0.5)
     return fig
+
+
+def plot_feature_dist(df: pd.DataFrame, exclude_features=[]):
+    """Plot the distribution of all columns in a pandas dataframe expect those sepcified in exlude_features
+    Args:
+        df = pandas DataFrame
+        exclude_features = list of feature names i.e. strings
+    Output:
+        ax = matplotlib axis
+    """
+    df.drop(columns=exclude_features,inplace=True)
+    ax = df.astype('float64').hist(bins=25,grid=False,color='#659666',zorder=2,rwidth=0.9,figsize=(12,10))
+    for axis in ax:
+        for x in axis:
+            # Despine
+            x.spines['right'].set_visible(False)
+            x.spines['top'].set_visible(False)
+
+            # Switch off ticks and change label size
+            x.tick_params(axis="both", which="both", bottom="off", top="off", labelbottom="on", left="off", right="off", labelleft="on", labelsize=6)
+
+            # Draw horizontal axis lines
+            vals = x.get_yticks()
+            for tick in vals:
+                x.axhline(y=tick, linestyle='solid', alpha=0.4, color='#eeeeee', zorder=1)
+
+            # Modify title
+            x.title.set_fontsize(10)
+            x.title.set_fontweight('bold')
+
+            # Format y-axis label
+            x.yaxis.set_major_formatter(StrMethodFormatter('{x:,g}'))
+    return ax
