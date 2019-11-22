@@ -237,16 +237,29 @@ def plot_correlation_node_graph(cor):
     return fig
 
 
-def plot_feature_dist(df: pd.DataFrame, exclude_features=[]):
+def plot_feature_dist(df: pd.DataFrame, exclude_features=[], by=[]):
     """Plot the distribution of all columns in a pandas dataframe expect those sepcified in exlude_features
     Args:
         df = pandas DataFrame
         exclude_features = list of feature names i.e. strings
+        by = create seperate Histograms for groups e.g. by the Pathogenic column
     Output:
         ax = matplotlib axis
     """
     df.drop(columns=exclude_features,inplace=True)
-    ax = df.astype('float64').hist(bins=25,grid=False,color='#659666',zorder=2,rwidth=0.9,figsize=(12,10))
+    if by:
+        sns.set_style("white")
+        fig, axes = plt.subplots(4, 4, figsize=(12, 10), dpi=100)
+        print(axes)
+        df_float = df.drop(columns=[by]).astype('float')
+        df_float_copy = df_float.copy()
+        df_float_copy[by] = df[by]
+        for idx, column in enumerate(df_float.columns):
+            sns.distplot(df_float_copy[column].loc[df_float_copy['Pathogenicity'] == 'Pathogenic'],label=column, ax=axes[idx//4][idx%4], axlabel='column')
+            sns.distplot(df_float_copy[column].loc[df_float_copy['Pathogenicity'] == 'Non_Pathogenic'],label=column, ax=axes[idx//4][idx%4], axlabel='column')
+        plt.show()
+    else:
+        ax = df.astype('float64').hist(bins=25,grid=False,color='#659666',zorder=2,rwidth=0.9,figsize=(12,10))
     for axis in ax:
         for x in axis:
             # Despine
