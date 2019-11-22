@@ -59,13 +59,9 @@ def run(args):
     # get feature df
     feature_df = preprocessing.create_feature_df(annotated_cnvs, args.feature)
 
-    # scale features
-    if 'continuous' in args.feature:
-        scaled_feature_df = preprocessing.scale_and_impute_df(feature_df,model.scaler, model.imputer)
-
 
     test_set = [scaled_feature_df, np.array(y)]
-    y_pred_scores = model.clf.predict_proba(scaled_feature_df)[:, 1]
+    y_pred_scores = model.pipeline.predict_proba(scaled_feature_df)[:, 1]
 
     if args.csv:
         feature_df = preprocessing.create_feature_df(annotated_cnvs,args.feature,csv=True)
