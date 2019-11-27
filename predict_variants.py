@@ -23,7 +23,7 @@ def argparser():
     parser.add_argument('-o','--output', default='./',help='Output location.')
     parser.add_argument('-l','--labeled',action='store_true',help='Set if variants are labeled with column "label".')
     parser.add_argument('-f','--feature', default='extended_continuous', help='Feature set. Options: \n basic_binary \n extended_binary \n basic_continuous \n extended_continuous')
-    parser.add_argument('-csv','--csv', action='store_false', help='Return CSV file with the pathogencity odds and functional annotation of each CNV.')
+    parser.add_argument('-csv','--csv', action='store_true', help='Return CSV file with the pathogencity odds and functional annotation of each CNV.')
     return parser.parse_args()
 
 
@@ -60,8 +60,8 @@ def run(args):
     feature_df = preprocessing.create_feature_df(annotated_cnvs, args.feature)
 
 
-    test_set = [scaled_feature_df, np.array(y)]
-    y_pred_scores = model.pipeline.predict_proba(scaled_feature_df)[:, 1]
+    test_set = [feature_df, np.array(y)]
+    y_pred_scores = model.pipeline.predict_proba(feature_df)[:, 1]
 
     if args.csv:
         feature_df = preprocessing.create_feature_df(annotated_cnvs,args.feature,csv=True)

@@ -41,7 +41,7 @@ def objects_from_file(path, cls_string, column_names=[], **kwargs):
         if line.startswith('#'):
             column_names = line.strip().split('\t')[3:]
             continue
-        bed_objects.append(bed_class(line, column_names, **dict(kwargs,vcf=vcf))
+        bed_objects.append(bed_class(line, column_names, **dict(kwargs,vcf=vcf)))
     open_path.close()
     return bed_objects
 

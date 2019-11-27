@@ -27,8 +27,8 @@ class CNV(Bed):
             self.start = int(self.data[1])
             self.data = {column_name: self.data[3 + idx]
                          for idx, column_name in enumerate(column_names)}
-            self.info = {split(element,'=')[0]:split(element,'=')[0] for element in split(self.data['INFO'],'')}
-            self.end = self.start + np.abs(self.info['SVLEN'])
+            self.info = {element.split('=')[0]:element.split('=')[1] for element in self.data['INFO'].split(';')}
+            self.end = self.start + np.abs(int(self.info['SVLEN']))
         else:
             super().__init__(line, column_names)
         self.tads = []
@@ -122,36 +122,96 @@ class CNV(Bed):
         return np.array(features, dtype=float)
 
     def get_extended_continuous_features(self):
-        """Returns extended continuous features which are either directly derived from the TADs or         print(self.data)based on the CNV itself.
-        The output is a numpy boolean feature vector."""
+        """Returns extended continuous features which are either directly derived from the TADs or based on the CNV itself.
+        The output is a numpy feature vector."""
         LOEUF = np.nan
         HI = np.nan
         phastcon = np.nan
         Log_odd_HI = np.nan
         exon_overlap = 0
         enhancer_overlap = 0
+        overlapping_genes = []
+        overlapping_enhancers = []
+
         try:
             overlapping_genes = np.array(self.annotations['genes'])[np.where(
                 np.array(self.annotation_distances['genes']) == 0)]
-            HIs = [float(gene.data['HI']) for gene in overlapping_genes]
-            HSs = [1 - hi for hi in HIs]
-            HI_division = np.divide(1 - np.prod(HSs), np.prod(HSs))
-            if HI_division != 0:
-                Log_odd_HI = np.log(HI_division)
-            LOEUF = float(self.annotations['genes'][np.argmin(
-                self.annotation_distances['genes'])].data['LOEUF'])
-            HI = float(self.annotations['genes'][np.argmin(
-                self.annotation_distances['genes'])].data['HI'])
-            phastcon = float(self.annotations['enhancers'][np.argmin(
-                self.annotation_distances['enhancers'])].data['Phastcon'])
-            exon_overlap = self.annotations['genes'][np.argmin(
-                self.annotation_distances['genes'])].get_exon_overlap(self)
-            closest_enhancer = self.annotations['enhancers'][np.argmin(
-                self.annotation_distances['enhancers'])]
-            enhancer_overlap = utils.getOverlap((self.start, self.end), (
-                closest_enhancer.start, closest_enhancer.end)) / (closest_enhancer.end - closest_enhancer.start)
         except (ValueError, KeyError, IndexError) as e:
-            err_message = e
+            pass
 
-        features = [len(np.array(self.annotations['genes'])[np.where(np.array(self.annotation_distances['genes']) == 0)]), len(np.array(self.annotations['enhancers'])[np.where(np.array(self.annotation_distances['enhancers']) == 0)]), min(self.annotation_distances['TAD_boundaries']), self.annotations['TAD_contact_pvalue'][np.argmin(self.annotation_distances['TAD_boundaries'])], min(self.annotation_distances['genes'], default=np.nan), min(self.annotation_distances['enhancers'], default=np.nan), min(self.annotation_distances['DDG2P'], default=np.nan), LOEUF, phastcon, HI, min(self.annotation_distances['CTCF'], default=np.nan), Log_odd_HI, exon_overlap]
+        if overlapping_genes.size > 0:
+            try:
+                # get the minimal LOEUF score of the overlapping genes
+                LOEUF = np.nanmin([float(gene.data['LOEUF']) for gene in overlapping_genes])
+            except (ValueError, KeyError, IndexError) as e:
+                pass
+
+            try:
+                HIs = [float(gene.data['HI']) for gene in overlapping_genes]
+                HSs = [1 - hi for hi in HIs]
+                HI_division = np.divide(1 - np.prod(HSs), np.prod(HSs))
+                # compute the HI log Odds score
+                if HI_division != 0:
+                    Log_odd_HI = np.log(HI_division)
+                # get the maximum probability of being haploinsufficient for the overlapping gnes
+                HI = np.nanmax(HIs)
+            except (ValueError, KeyError, IndexError) as e:
+                pass
+
+            try:
+                # get the highest proportional exon overlap of all overlapping genes
+                if len(overlapping_genes)==7:
+                    for gene in overlapping_genes:
+                        if gene.annotations['exons']:
+                            print(self.start)
+                            print(self.end)
+                            for exon in gene.annotations['exons']:
+                                print(exon)
+                exon_overlap = np.max([gene.get_exon_overlap(self) for gene in overlapping_genes])
+            except (ValueError, KeyError, IndexError) as e:
+                pass
+        else:
+            try:
+                # get the LOEUF score of the closest gene
+                LOEUF = float(self.annotations['genes'][np.argmin(
+                    self.annotation_distances['genes'])].data['LOEUF'])
+            except (ValueError, KeyError, IndexError) as e:
+                pass
+            try:
+                # get the HI score of the closest gene
+                LOEUF = float(self.annotations['genes'][np.argmin(
+                    self.annotation_distances['genes'])].data['HI'])
+            except (ValueError, KeyError, IndexError) as e:
+                pass
+
+
+        try:
+            # get overlapping enhancers
+            overlapping_enhancers = np.array(self.annotations['enhancers'])[np.where(
+                np.array(self.annotation_distances['enhancers']) == 0)]
+        except (ValueError, KeyError, IndexError) as e:
+            pass
+
+        if overlapping_enhancers.size > 0:
+            try:
+                # get the maximum enhancer overlap of all overlapping enhancers
+                enhancer_overlap = np.max([utils.getOverlap((self.start, self.end), (enhancer.start, enhancer.end)) / (enhancer.end - enhancer.start) for enhancer in overlapping_enhancers])
+            except (ValueError, KeyError, IndexError) as e:
+                pass
+
+            try:
+                # get the maximal Phastcon value of all overlapping enhancer
+                phastcon = np.nanmin([float(enhancer.data['Phastcon']) for enhancer in overlapping_enhancers])
+            except (ValueError, KeyError, IndexError) as e:
+                pass
+        else:
+            try:
+                phastcon = float(self.annotations['enhancers'][np.argmin(
+                    self.annotation_distances['enhancers'])].data['Phastcon'])
+            except (ValueError, KeyError, IndexError) as e:
+                pass
+
+
+
+        features = [len(overlapping_genes), len(overlapping_enhancers), min(self.annotation_distances['TAD_boundaries']), self.annotations['TAD_contact_pvalue'][np.argmin(self.annotation_distances['TAD_boundaries'])], min(self.annotation_distances['genes'], default=np.nan), min(self.annotation_distances['enhancers'], default=np.nan), min(self.annotation_distances['DDG2P'], default=np.nan), LOEUF, phastcon, HI, min(self.annotation_distances['CTCF'], default=np.nan), Log_odd_HI, exon_overlap]
         return np.array(features, dtype=float)
