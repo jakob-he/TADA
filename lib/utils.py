@@ -30,17 +30,18 @@ def objects_from_file(path, cls_string, column_names=[], **kwargs):
         open_path = path.open()
 
     bed_objects = []
+    vcf = False
     for line in open_path:
         if not type(line) == str:
             line = line.decode('utf-8')
         #handle headers of bed CNV files
         if line.startswith('##'):
+            vcf = True
             continue
         if line.startswith('#'):
             column_names = line.strip().split('\t')[3:]
             continue
-        bed_objects.append(bed_class(line, column_names, **kwargs))
-
+        bed_objects.append(bed_class(line, column_names, **dict(kwargs,vcf=vcf))
     open_path.close()
     return bed_objects
 

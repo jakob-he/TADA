@@ -21,8 +21,8 @@ def argparser():
     parser.add_argument('-t','--tads', default='data/default_annotated_TADs.p',help='Pickeled file with annotated TADs.')
     parser.add_argument('-m','--model', default='data/default_model.p',help='pickled scikit model which is supposed to be used for classification.')
     parser.add_argument('-o','--output', default='./',help='Output location.')
-    parser.add_argument('-l','--labeled',action='store_true',help='True if variants are labeled with column "label".')
-    parser.add_argument('-f','--feature', default='extended_continuous', help='Feature set. Options: \n basic_binary \n extended binary \n basic continuous \n extended continuous')
+    parser.add_argument('-l','--labeled',action='store_true',help='Set if variants are labeled with column "label".')
+    parser.add_argument('-f','--feature', default='extended_continuous', help='Feature set. Options: \n basic_binary \n extended_binary \n basic_continuous \n extended_continuous')
     parser.add_argument('-csv','--csv', action='store_false', help='Return CSV file with the pathogencity odds and functional annotation of each CNV.')
     return parser.parse_args()
 

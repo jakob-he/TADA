@@ -17,11 +17,18 @@ class CNV(Bed):
         """
         if vcf:
             self.data = line.strip().split('\t')
-            location = self.data[1].split(':')
-            self.chr = location[0]
-            position = location[1].split('-')
-            self.start = int(position[0])
-            self.end = int(position[1])
+
+            #correct for chromosome notation
+            if self.data[0][:3]=='chr':
+                self.chr = self.data[0]
+            else:
+                self.chr = 'chr' + self.data[0]
+
+            self.start = int(self.data[1])
+            self.data = {column_name: self.data[3 + idx]
+                         for idx, column_name in enumerate(column_names)}
+            self.info = {split(element,'=')[0]:split(element,'=')[0] for element in split(self.data['INFO'],'')}
+            self.end = self.start + np.abs(self.info['SVLEN'])
         else:
             super().__init__(line, column_names)
         self.tads = []
