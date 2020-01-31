@@ -132,6 +132,13 @@ class CNV(Bed):
         enhancer_overlap = 0
         overlapping_genes = []
         overlapping_enhancers = []
+        minimal_normalized_interaction_overlap = np.nan
+
+        try:
+            # get the maximal proportional overlap with interacting fragments of the genes in the same TAD normalized by the gene's LOEUF
+            minimal_normalized_interaction_overlap = max([gene.get_interaction_overlap(self)/float(gene.data['LOEUF']) for gene in self.annotations['genes'] if float(gene.data['LOEUF'])!=0],default=np.nan)
+        except (ValueError, KeyError, IndexError) as e:
+            pass
 
         try:
             overlapping_genes = np.array(self.annotations['genes'])[np.where(
@@ -160,13 +167,6 @@ class CNV(Bed):
 
             try:
                 # get the highest proportional exon overlap of all overlapping genes
-                if len(overlapping_genes)==7:
-                    for gene in overlapping_genes:
-                        if gene.annotations['exons']:
-                            print(self.start)
-                            print(self.end)
-                            for exon in gene.annotations['exons']:
-                                print(exon)
                 exon_overlap = np.max([gene.get_exon_overlap(self) for gene in overlapping_genes])
             except (ValueError, KeyError, IndexError) as e:
                 pass
@@ -213,5 +213,5 @@ class CNV(Bed):
 
 
 
-        features = [len(overlapping_genes), len(overlapping_enhancers), min(self.annotation_distances['TAD_boundaries']), self.annotations['TAD_contact_pvalue'][np.argmin(self.annotation_distances['TAD_boundaries'])], min(self.annotation_distances['genes'], default=np.nan), min(self.annotation_distances['enhancers'], default=np.nan), min(self.annotation_distances['DDG2P'], default=np.nan), LOEUF, phastcon, HI, min(self.annotation_distances['CTCF'], default=np.nan), Log_odd_HI, exon_overlap]
+        features = [len(overlapping_genes), len(overlapping_enhancers), min(self.annotation_distances['TAD_boundaries']), self.annotations['TAD_contact_pvalue'][np.argmin(self.annotation_distances['TAD_boundaries'])], min(self.annotation_distances['genes'], default=np.nan), min(self.annotation_distances['enhancers'], default=np.nan), min(self.annotation_distances['DDG2P'], default=np.nan), LOEUF, phastcon, HI, min(self.annotation_distances['CTCF'], default=np.nan), Log_odd_HI, exon_overlap, minimal_normalized_interaction_overlap]
         return np.array(features, dtype=float)

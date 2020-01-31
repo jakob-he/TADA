@@ -61,7 +61,7 @@ def run(args):
 
 
     test_set = [feature_df, np.array(y)]
-    y_pred_scores = model.pipeline.predict_proba(feature_df)[:, 1]
+    y_pred_scores = model.pipeline.predict(feature_df)
 
     if args.csv:
         feature_df = preprocessing.create_feature_df(annotated_cnvs,args.feature,csv=True)

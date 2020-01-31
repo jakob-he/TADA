@@ -9,12 +9,15 @@ import pathlib
 import pandas as pd
 from sklearn.metrics import confusion_matrix
 from itertools import permutations
+from sklearn import preprocessing
+from sklearn import impute
 
 # plotting
-import matplotlib.pyplot as plt
 import seaborn as sns
 import networkx as nx
+import matplotlib.pyplot as plt
 from matplotlib.ticker import StrMethodFormatter
+from matplotlib.font_manager import fontManager, FontProperties
 
 
 def plot_confusion_matrix(y_true, y_pred, classes,
@@ -25,18 +28,19 @@ def plot_confusion_matrix(y_true, y_pred, classes,
     This function prints and plots the confusion matrix.
     Normalization can be applied by setting `normalize=True`.
     """
-    if not title:
-        if normalize:
-            title = 'Normalized confusion matrix'
-        else:
-            title = 'Confusion matrix, without normalization'
+    # if not title:
+    #     if normalize:
+    #         title = 'Normalized confusion matrix'
+    #     else:
+    #         title = 'Confusion matrix, without normalization'
 
     # Compute confusion matrix
+    plt.rcParams.update({'font.size': 25, 'axes.labelsize': 25,'xtick.labelsize':25,'ytick.labelsize':25})
     cm = confusion_matrix(y_true, y_pred)
     if normalize:
         cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
 
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(12,10))
     im = ax.imshow(cm, interpolation='nearest', cmap=cmap)
     ax.figure.colorbar(im, ax=ax)
     # We want to show all ticks...
@@ -49,8 +53,8 @@ def plot_confusion_matrix(y_true, y_pred, classes,
            xlabel='Predicted label')
 
     # Rotate the tick labels and set their alignment.
-    plt.setp(ax.get_xticklabels(), rotation=45, ha="right",
-             rotation_mode="anchor")
+    plt.setp(ax.get_xticklabels(), ha="right",
+             rotation_mode="anchor", rotation=45)
 
     # Loop over data dimensions and create text annotations.
     fmt = '.2f' if normalize else 'd'
@@ -225,19 +229,19 @@ def plot_correlation_node_graph(cor):
     # Graph with Custom nodes:
     fig = plt.figure(figsize=(12, 10))
     pos = nx.spring_layout(G, scale=0.5)
-    nx.draw(G, pos=pos, with_labels=True, node_size=10000, node_color="#98db84", node_shape="o",
-            alpha=0.7, linewidths=2, font_size=20, font_weight='bold', font_color='#000000')
+    nx.draw(G, pos=pos, with_labels=True, node_size=1000, node_color="#98db84", node_shape="o",
+            alpha=0.7, linewidths=2, font_size=8, font_weight='bold', font_color='#000000')
 
     edge_labels = {}
     for idx, cor in enumerate(cors):
         key = (orig[idx], dest[idx])
         edge_labels[key] = round(cor, 4)
     nx.draw_networkx_edge_labels(
-        G, pos, edge_labels=edge_labels, font_color='black', font_size=20, label_pos=0.5)
+        G, pos, edge_labels=edge_labels, font_color='black', font_size=8, label_pos=0.5)
     return fig
 
 
-def plot_feature_dist(df: pd.DataFrame, exclude_features=[], by=[]):
+def plot_feature_dist(df: pd.DataFrame, exclude_features=[], by=''):
     """Plot the distribution of all columns in a pandas dataframe expect those sepcified in exlude_features
     Args:
         df = pandas DataFrame
@@ -247,27 +251,55 @@ def plot_feature_dist(df: pd.DataFrame, exclude_features=[], by=[]):
         ax = matplotlib axis
     """
     df.drop(columns=exclude_features,inplace=True)
+
+    # get labels
+    labels = df[by].values
+
+    # drop labels form dataframe
+    df.drop(columns=[by], inplace=True)
+
+    # impute data
+    imputer = impute.SimpleImputer(missing_values=np.nan, strategy='mean')
+    imputed_data = imputer.fit_transform(df)
+    df_imputed = pd.DataFrame(imputed_data)
+    df_imputed.columns = df.columns
+    df = df_imputed
+
+    # normalize data
+    min_max_scaler = preprocessing.MinMaxScaler()
+    df_scaled = min_max_scaler.fit_transform(df)
+    df_norm = pd.DataFrame(df_scaled)
+    df_norm.columns = df.columns
+    df_norm[by] = labels
+
     if by:
         sns.set_style("white")
-        fig, axes = plt.subplots(4, 4, figsize=(12, 10), dpi=100)
-        print(axes)
-        df_float = df.drop(columns=[by]).astype('float')
-        df_float_copy = df_float.copy()
-        df_float_copy[by] = df[by]
-        for idx, column in enumerate(df_float.columns):
-            sns.distplot(df_float_copy[column].loc[df_float_copy['Pathogenicity'] == 'Pathogenic'],label=column, ax=axes[idx//4][idx%4], axlabel='column')
-            sns.distplot(df_float_copy[column].loc[df_float_copy['Pathogenicity'] == 'Non_Pathogenic'],label=column, ax=axes[idx//4][idx%4], axlabel='column')
-        plt.show()
+        fig, axs = plt.subplots(nrows=4, ncols=4, figsize=(12,10))
+        axs_array = axs.reshape(-1)
+        for idx,column in enumerate(df.columns):
+            bins = np.linspace(df_norm[column].min(), df_norm[column].max(), 25)
+            for label in df_norm[by].unique():
+                column_data = df_norm[column][df_norm[by]==label]
+                sns.distplot(column_data,ax=axs_array[idx],bins=bins,label = label,kde=False)
+            axs_array[idx].set_ylabel('')
+            axs_array[idx].set_xlabel('')
+            axs_array[idx].set_title(column)
+        fig.delaxes(axs[3,2])
+        fig.delaxes(axs[3,3])
+        handles, labels = axs[3,1].get_legend_handles_labels()
+        legend_font= FontProperties(weight='bold',size=10)
+        fig.legend(handles, labels, prop=legend_font, loc=(.6,.1),markerscale=1.2,edgecolor='#575454')
     else:
-        ax = df.astype('float64').hist(bins=25,grid=False,color='#659666',zorder=2,rwidth=0.9,figsize=(12,10))
-    for axis in ax:
+        axs_array = df.astype('float64').hist(bins=25,grid=False,color='#659666',zorder=2,rwidth=0.9,figsize=(12,10))
+
+    for axis in axs:
         for x in axis:
             # Despine
             x.spines['right'].set_visible(False)
             x.spines['top'].set_visible(False)
 
             # Switch off ticks and change label size
-            x.tick_params(axis="both", which="both", bottom="off", top="off", labelbottom="on", left="off", right="off", labelleft="on", labelsize=6)
+            x.tick_params(axis="both", which="both", bottom=False, top=False, labelbottom=True, left=True, right=False, labelleft=True, labelsize=6)
 
             # Draw horizontal axis lines
             vals = x.get_yticks()
@@ -280,4 +312,13 @@ def plot_feature_dist(df: pd.DataFrame, exclude_features=[], by=[]):
 
             # Format y-axis label
             x.yaxis.set_major_formatter(StrMethodFormatter('{x:,g}'))
-    return ax
+    fig.tight_layout()
+    return axs
+
+def plot_correlation_heatmap(corr, labels):
+    corr_df = pd.DataFrame(corr,columns=labels)
+    mask = np.tril(corr_df)
+    fig = plt.figure(figsize=(12,12))
+    sns.heatmap(corr_df,annot=True, fmt='.2g', vmin=-1, vmax=1, center=0, cmap='coolwarm', mask=mask, xticklabels=labels, yticklabels=labels)
+    plt.tight_layout()
+    return fig

@@ -18,8 +18,10 @@ def argparser():
     parser.add_argument('-f','--feature', help='Feature set. Options: \n basic_binary \n extended binary \n basic continuous \n extended continuous', required=True)
     parser.add_argument('-fs','--feature_selection',help='Enables the generation of correlation and PCA figures for feature seletion',action='store_true')
     parser.add_argument('-cls','--cls', help='Type of classifier. Allowed options are: \n lr = Logistic Regression', required=True)
-    parser.add_argument('-kw','--kwargs',default={},help='Keyword arguments for the classifier. They have to be in the flowwing format "keyword_1=arg_1,keyword_2=arg_2". Keywords that should be interpreteted as strings have to be in double quotes.')
+    parser.add_argument('-kw','--kwargs',default={},help='Keyword arguments for the classifier. They have to be in the following format "keyword_1=arg_1,keyword_2=arg_2". Keywords that should be interpreteted as strings have to be in double quotes.')
     parser.add_argument('-o','--output', help='Output location.')
+    parser.add_argument('-gridcv','--grid_cv', help='Activate GridSearchCV to find the optimal hyper-parameters.', action='store_true')
+    parser.add_argument('-rs','--random_seed',help='Define a random seed for reproducability.')
     return parser.parse_args()
 
 
@@ -37,6 +39,10 @@ def run(args):
                 pass
             kwargs[key] = arg
 
+    # set random seed if available
+    if args.random_seed:
+        np.random.seed(int(args.random_seed))
+
     # unpickle the annotated CNV files
     with pathlib.Path(args.cnvs1).open('rb') as non_pathogenic_cnvs:
         non_patho_cnvs = pickle.load(non_pathogenic_cnvs)
@@ -48,8 +54,8 @@ def run(args):
     train_set, test_set = preprocessing.create_stratified_training_and_test_set(non_patho_cnvs,patho_cnvs,feature_type=args.feature,oneHot=False)
     lr = Classifier(classifier=args.cls, **kwargs)
     if args.feature_selection:
-        lr.feature_selection(train_set,test_set,args.feature,output_dir=args.output)
-    lr.train(train_set,output_dir=args.output)
+        lr.feature_selection(train_set,args.feature,output_dir=args.output)
+    lr.train(train_set,output_dir=args.output,permut_importance=True,gridcv=args.grid_cv)
     lr.test(test_set,save=True,plot=True,output_dir=args.output)
 
     # plot roc curve
@@ -57,9 +63,6 @@ def run(args):
 
 
 def main():
-    # set random seed
-    np.random.seed(42)
-
     args = argparser()
 
     run(args)

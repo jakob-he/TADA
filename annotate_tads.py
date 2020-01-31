@@ -19,11 +19,13 @@ def argparser():
     parser.add_argument('-ga','--gene_annotation',action='store_true',help='Annotate Genes with Exons. The gene (-g) and exon (-e) bed files have to be included.')
     parser.add_argument('-g','--genes',help='Path to a BED file containing gene annotations.')
     parser.add_argument('-e','--exons',help='Path to a BED file containing exon annotations with Gene IDs in the 4th column.')
+    parser.add_argument('-if','--interactions',help='Path to a BED file containing promotor-other interactions.')
     parser.add_argument('-o','--output', default='annotated_TADs.p', help='Output file.')
     return parser.parse_args()
 
 
 def run(args):
+    print('Annotating TADs...')
     # create bed objects from TADS
     tad_beds = utils.objects_from_file(args.tads, 'TAD')
 
@@ -35,9 +37,10 @@ def run(args):
 
     # if needed annotate genes with enhancers
     if args.gene_annotation:
+        interaction_dict = {'interactions':utils.create_chr_dictionary_from_beds(utils.objects_from_file(args.interactions,'Bed'))}
         exon_dict = {'exons':utils.create_chr_dictionary_from_beds(utils.objects_from_file(args.exons,'Bed'))}
         gene_dict = utils.create_chr_dictionary_from_beds(utils.objects_from_file(args.genes,'Gene'))
-        annotated_genes = utils.create_annotated_bed_dict(gene_dict,exon_dict,filer_exons=True)
+        annotated_genes = utils.create_annotated_bed_dict(gene_dict,{**exon_dict,**interaction_dict},filter_interactions=True,filter_exons=True)
         annotation_dicts['genes'] = annotated_genes
 
     # create dict with chromsomes as keys

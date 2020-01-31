@@ -31,10 +31,30 @@ class Gene(Bed):
                 matching_exons.append(exon)
         self.annotations['exons'] = matching_exons
 
+    def filter_interactions(self):
+        """Check for overlapping promotors and append interacting fragments"""
+        self.annotations['fragments'] = []
+        # Set interacting fragments to zero if more than one promotor overlaps
+        if len(self.annotations['interactions']) == 1:
+            for fragment in self.annotations['interactions'][0].data['fragments'].split(','):
+                chr, location = fragment.split(':')
+                start, end = location.split('-')
+                if chr == self.chr:
+                    self.annotations['fragments'].append((chr,int(start),int(end)))
+
+
     def get_exon_overlap(self,cnv):
         """Return proportion of exons overlapping with the given cnv"""
         if self.annotations['exons']:
             exon_prop = sum([1 if utils.getOverlap((cnv.start,cnv.end),(exon.start,exon.end)) > 0 else 0 for exon in self.annotations['exons']])/len(self.annotations['exons'])
             return exon_prop
+        else:
+            return 0
+
+    def get_interaction_overlap(self,cnv):
+        """Return proportion of interacting fragments overlapping with the given cnv normalized by the LOEUF score"""
+        if self.annotations['fragments']:
+            fragment_prop = sum([1 if utils.getOverlap((cnv.start,cnv.end),(fragment[1],fragment[2])) > 0 else 0 for fragment in self.annotations['fragments']])/len(self.annotations['fragments'])
+            return float(fragment_prop)
         else:
             return 0

@@ -24,8 +24,8 @@ def create_feature_df(cnv_dict, feature_type, csv=False):
     if feature_type == 'basic_continuous':
         features = ['Boundary Distance', 'Gene Distance', 'Enhancer Distance']
     if feature_type == 'extended_continuous':
-        features = ['Number of Genes','Number of Enhancers','Boundary Distance', 'Boundary pvalue', 'Gene Distance', 'Enhancer Distance', 'DDG2P Distance', 'Gene LOEUF',
-                    'Enhancer conservation', 'Gene HI', 'CTCF Distance', 'HI LogOdds Score', 'Exon Overlap']
+        features = ['Number of affected Genes','Number of affected Enhancers','Boundary Distance', 'Boundary pvalue', 'Gene Distance', 'Enhancer Distance', 'DDG2P Distance', 'Gene LOEUF',
+                    'Enhancer conservation', 'Gene HI', 'CTCF Distance', 'HI LogOdds Score', 'Exon Overlap', 'MPOI']
 
     cnv_features = []
     if csv:
@@ -94,6 +94,6 @@ def create_stratified_training_and_test_set(cnv_dict_1, cnv_dict_2, feature_type
 
     # create training and test set stratified by class labels
     X_train, X_test, y_train, y_test = train_test_split(
-        X, Y, test_size=0.2, random_state=42, stratify=Y)
+        X, Y, test_size=0.3, stratify=Y)
 
     return ([X_train, y_train], [X_test, y_test])

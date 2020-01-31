@@ -28,6 +28,7 @@ def argparser():
 
 
 def run(args):
+    print('Annotating CNVs...')
     #load annotated TAD data
     tads = pathlib.Path(args.tads)
     tads = pickle.load(tads.open('rb'))
@@ -50,9 +51,9 @@ def run(args):
         feature_df = preprocessing.create_feature_df(annotated_cnvs,args.features,csv=True)
         feature_df.to_csv(output_path / 'Annotated_CNVs.csv',sep='\t',header=True,index=False)
 
-        if args.plot:
-            plotting.plot_feature_dist(feature_df, exclude_features=['CHR','START','END'])
-            plt.savefig(output_path / 'Annotated_CNVs.png',bbox_inches='tight')
+        #if args.plot:
+        #    plotting.plot_feature_dist(feature_df, exclude_features=['CHR','START','END'])
+        #    plt.savefig(output_path / 'Annotated_CNVs.png',bbox_inches='tight')
 
 
 

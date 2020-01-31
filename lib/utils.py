@@ -13,6 +13,10 @@ import numpy as np
 import pandas as pd
 from scipy import stats, linalg
 
+# sklearn
+from sklearn.ensemble.forest import _generate_unsampled_indices
+from sklearn.metrics import r2_score
+
 
 def objects_from_file(path, cls_string, column_names=[], **kwargs):
     """Load a BED file and return a list of Bed objects""
@@ -139,7 +143,7 @@ def reduce_dict(dictionary, keys):
     return {key: (dictionary[key] if key in dictionary else []) for key in keys}
 
 
-def create_annotated_bed_dict(bed_dict, annotation_dicts, annotate=False,filer_exons=False,feature_type='binary'):
+def create_annotated_bed_dict(bed_dict, annotation_dicts, annotate=False,filter_exons=False,filter_interactions=False,feature_type='extended_continuous'):
     """Annotates every BED flement with the overlapping annotation.
     For each BED element in a chromosome the function iterates through the sorted annotations as long as the
     start position of any of the first annotations is less than the end position of the BED element.
@@ -179,8 +183,10 @@ def create_annotated_bed_dict(bed_dict, annotation_dicts, annotate=False,filer_e
             annotation_dict[chrom] = annotation_queue[annotation_name] + annotation_dict[chrom]
             if annotate:
                 bed_element.annotate(feature_type)
-            if filer_exons:
+            if filter_exons:
                 bed_element.filter_exons()
+            if filter_interactions:
+                bed_element.filter_interactions()
 
     return bed_dict
 
@@ -236,7 +242,7 @@ def phi_coeff(array_1,array_2):
     print(cont_tab)
     return (cont_tab[1][1]*cont_tab[0][0] - cont_tab[0][1]*cont_tab[1][0])/np.sqrt(sum(cont_tab[0])*sum(cont_tab[1])*sum(cont_tab[:][1])*sum(cont_tab[:][0]))
 
-def partial_corr(feature_df,feature_type):
+def partial_corr(features,feature_type):
     """
     Returns the sample linear partial correlation coefficients between pairs of variables in the feature dataframe, controlling
     for the remaining variables in the dataframe. The implementation is based on https://gist.github.com/fabianp/9396204419c7b638d38f.
@@ -248,7 +254,7 @@ def partial_corr(feature_df,feature_type):
         P_corr[i, j] contains the partial correlation of feature_df[:, i] and feature_df[:, j] controlling
         for the remaining variables in the feature dataframe.
     """
-    C = feature_df.values
+    C = features.values if isinstance(features, pd.DataFrame) else features
     p = C.shape[1]
     P_corr = np.zeros((p, p), dtype=np.float)
 
@@ -266,6 +272,24 @@ def partial_corr(feature_df,feature_type):
             corr = stats.pearsonr(res_i, res_j)[0]
             P_corr[i, j] = corr
             P_corr[j, i] = corr
-    P_corr = pd.DataFrame(P_corr,columns=feature_df.columns)
-    P_corr.rename({idx:column for idx,column in enumerate(feature_df.columns)},inplace=True)
     return P_corr
+
+def oob_classifier_accuracy(pipeline, X, y):
+    """
+    Compute out-of-bag (OOB) accuracy for a scikit-learn random forest
+    classifier.
+    """
+
+    n_samples = len(X)
+    n_classes = len(np.unique(y))
+    predictions = np.zeros((n_samples, n_classes))
+    for tree in pipeline['cls'].estimators_:
+        unsampled_indices = _generate_unsampled_indices(tree.random_state, n_samples, n_samples)
+        tree_preds = tree.predict_proba(pipeline[0:2].fit_transform(X[unsampled_indices, :]))
+        predictions[unsampled_indices] += tree_preds
+
+    predicted_class_indexes = np.argmax(predictions, axis=1)
+    predicted_classes = [pipeline['cls'].classes_[i] for i in predicted_class_indexes]
+
+    oob_score = np.mean(y == predicted_classes)
+    return oob_score
