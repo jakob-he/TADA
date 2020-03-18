@@ -24,7 +24,7 @@ def create_feature_df(cnv_dict, feature_type, csv=False):
     if feature_type == 'basic_continuous':
         features = ['Boundary Distance', 'Gene Distance', 'Enhancer Distance']
     if feature_type == 'extended_continuous':
-        features = ['Number of affected Genes','Number of affected Enhancers','Boundary Distance', 'Boundary pvalue', 'Gene Distance', 'Enhancer Distance', 'DDG2P Distance', 'Gene LOEUF',
+        features = ['Number of affected Genes','Number of affected Enhancers','Boundary Distance', 'Boundary Stability', 'Gene Distance', 'Enhancer Distance', 'DDG2P Distance', 'Gene LOEUF',
                     'Enhancer conservation', 'Gene HI', 'CTCF Distance', 'HI LogOdds Score', 'Exon Overlap', 'MPOI']
 
     cnv_features = []

@@ -42,7 +42,7 @@ def run(args):
 
     #annotate CNVS
     annotated_cnvs = utils.annotate_cnvs(tads,cnvs)
-
+    
     #save raw CNV object as pickle file
     with open(output_path / 'Annotated_CNVs.p', "wb") as output:
         pickle.dump(annotated_cnvs, output)

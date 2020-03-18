@@ -14,7 +14,7 @@ import pandas as pd
 from scipy import stats, linalg
 
 # sklearn
-from sklearn.ensemble.forest import _generate_unsampled_indices
+from sklearn.ensemble._forest import _generate_unsampled_indices
 from sklearn.metrics import r2_score
 
 
@@ -196,9 +196,9 @@ def annotate_cnvs(tad_dict, cnv_dict):
     The function iterates through the TADs one chromsome at a time. For each TAD it checks every CNVs were
     the start position is either less or equal to the TADs start position. If that is the case there are four possiblities:
         1. The CNV ends before the TAD -> this CNV is either not in any of the available TADs or ended in between TADs.
-        2. The CNV ends in the TAD but starts before it -> append the TAD to the CNV and move the CNV to the list of annotated CNVs and change boundary_spanning to True.
+        2. The CNV ends in the TAD but starts before it -> append the TAD to the CNV and move the CNV to the list of annotated CNVs.
         3. The CNV ends and starts in the TAD -> append the TAD to the CNV and move the CNV to the list of annotated CNVs.
-        4. Tne CNVs starts before the TAD but ends after it -> append the TAD to the CNV, keep it in the CNV dict and change the boundary_spanning attribute to True.
+        4. Tne CNVs starts before the TAD but ends after it -> append the TAD to the CNV, keep it in the CNV dict.
     """
     # reduce the cnvs to chromsomes were tads are available
     cnv_dict = reduce_dict(cnv_dict,tad_dict.keys())
@@ -212,12 +212,9 @@ def annotate_cnvs(tad_dict, cnv_dict):
             cnv_queue = []
             while is_in(cnv_dict[chrom],tad):
                 if cnv_dict[chrom][0].end <= tad.end and cnv_dict[chrom][0].end >= tad.start:
-                    if cnv_dict[chrom][0].start < tad.start:
-                        cnv_dict[chrom][0].boundary_spanning = True
                     cnv_dict[chrom][0].tads.append(tad)
                     annotated_cnvs.append(cnv_dict[chrom].pop(0))
                 elif cnv_dict[chrom][0].end > tad.end:
-                    cnv_dict[chrom][0].boundary_spanning = True
                     cnv_dict[chrom][0].tads.append(tad)
                     cnv_queue.append(cnv_dict[chrom].pop(0))
                 else:

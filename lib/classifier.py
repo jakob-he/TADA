@@ -51,8 +51,8 @@ gridcv_parameters_dict = {'lr':
                     'cls__max_features': ['auto', 'log2'],
                     'cls__min_samples_leaf': [1, 3, 5],
                     'cls__min_samples_split': [2, 4, 6, 10],
-                    'cls__n_estimators': [100, 300, 500],
-                    'cls__oob_score' : True}}
+                    'cls__n_estimators': [300, 500, 1000],
+                    'cls__oob_score' : [True]}}
 
 tuned_parameters_dict = {'lr':
                    {'cls__solver': 'liblinear',
@@ -144,7 +144,7 @@ class Classifier():
 
         if gridcv:
             # Initialize GridSearch object
-            gscv = GridSearchCV(self.pipeline, parameters_dict[self.name], cv = skf, verbose = 1, scoring = "roc_auc")
+            gscv = GridSearchCV(self.pipeline, gridcv_parameters_dict[self.name], cv = skf, verbose = 1, scoring = "roc_auc")
             # Fit gscv
             print(f"Tuning {self.name}...")
             gscv.fit(train_set[0], train_set[1])
@@ -152,6 +152,10 @@ class Classifier():
             # Get best parameters and score
             print(f'Best parameters: {gscv.best_params_}')
             print(f'Best ROC-AUC score {gscv.best_score_}')
+
+            # train pipeline on all data with the best parameters
+            self.pipeline.set_params(**gscv.best_params_)
+            self.pipeline.fit(train_set[0],train_set[1])
         else:
             # set classifier params
             self.pipeline.set_params(**tuned_parameters_dict[self.name])
@@ -237,7 +241,8 @@ class Classifier():
             print(classification_report(test_set[1],y_pred,target_names=self.classes))
 
             # calculate roc curve
-            precision, recall, thresholds = precision_recall_curve(test_set[1], y_pred_scores)
+            fpr, tpr, thresholds = roc_curve(test_set[1], y_pred_scores)
+            auc = roc_auc_score(test_set[1], y_pred_scores)
 
             if plot:
                 # plot confusion matrix
@@ -246,7 +251,6 @@ class Classifier():
                     plt.tight_layout()
                     plt.savefig(pathlib.Path(output_dir) / f'{self.name}_Confusion_Matrix.png')
                 # plot feature importance
-                # IMPOPRTANT! to be able to compare the coefficients all the features have to be on the same scale.
                 if self.name == 'rf':
                     coef = self.pipeline['cls'].feature_importances_
                     ylabel = 'Feature Importance'
@@ -268,16 +272,13 @@ class Classifier():
 
                 # plot the roc curve
                 plt.figure(figsize=(12,10))
-                plt.step(recall, precision, color='#2c7056', alpha=0.2, where='post')
-                plt.fill_between(recall, precision, alpha=0.2, color='#2c7056', step='post')
-                plt.xlabel('Recall',fontsize=25)
-                plt.ylabel('Precision',fontsize=25)
-                plt.ylim([0.0, 1.05])
-                plt.xlim([0.0, 1.0])
-                plt.tick_params(labelsize=25)
+                plt.plot(fpr, tpr, color ='#007878', label='Random Forest')
+                plt.plot([0, 1], [0, 1], color='grey', lw=2, linestyle='--')
+                # axis labels
+                plt.xlabel('False Positive Rate')
+                plt.ylabel('True Positive Rate')
+                # show the legend
+                plt.legend()
                 if save:
                     plt.tight_layout()
-                    plt.savefig(pathlib.Path(output_dir) / f'{self.name}_PRC.png')
-            return precision, recall
-        else:
-            return y_pred_scores
+                    plt.savefig(pathlib.Path(output_dir) / f'{self.name}_ROC.png')

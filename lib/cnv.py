@@ -18,8 +18,8 @@ class CNV(Bed):
         if vcf:
             self.data = line.strip().split('\t')
 
-            #correct for chromosome notation
-            if self.data[0][:3]=='chr':
+            # correct for chromosome notation
+            if self.data[0][:3] == 'chr':
                 self.chr = self.data[0]
             else:
                 self.chr = 'chr' + self.data[0]
@@ -27,12 +27,12 @@ class CNV(Bed):
             self.start = int(self.data[1])
             self.data = {column_name: self.data[3 + idx]
                          for idx, column_name in enumerate(column_names)}
-            self.info = {element.split('=')[0]:element.split('=')[1] for element in self.data['INFO'].split(';')}
+            self.info = {element.split('=')[0]: element.split(
+                '=')[1] for element in self.data['INFO'].split(';')}
             self.end = self.start + np.abs(int(self.info['SVLEN']))
         else:
             super().__init__(line, column_names)
         self.tads = []
-        self.boundary_spanning = False
         self.annotations = {}
         self.annotation_distances = {}
 
@@ -45,21 +45,22 @@ class CNV(Bed):
         """Calculates the distance and overlap for each annotation in the same TAD as the CNV. Overlap is always binary."""
         binary = feature_type == 'binary'
         self.annotation_distances['TAD_boundaries'] = []
-        self.annotations['TAD_contact_pvalue'] = []
+        self.annotations['TAD_stability'] = []
         if self.tads:
             for tad in self.tads:
-                tad_distances = [abs(self.start - tad.start),
-                                 abs(tad.end - self.end)]
+                boundary_overlaps = [self.start <
+                                     tad.start, self.end > tad.end]
+                boundary_distances = [self.start -
+                                      tad.start, tad.end - self.end]
 
-                if self.boundary_spanning:
-                    self.annotation_distances['TAD_boundaries'].append(0)
-                else:
-                    self.annotation_distances['TAD_boundaries'].append(
-                        min(tad_distances))
+                self.annotation_distances['TAD_boundaries'].extend(
+                    [0 if overlap else boundary_distances[i] for i, overlap in enumerate(boundary_overlaps)])
 
-                if tad.data['pvalue_1']:
-                    self.annotations['TAD_contact_pvalue'].append(
-                        tad.data[f'pvalue_{np.argmin(tad_distances)+1}'])
+                if tad.data['stability_1']:
+                    self.annotations['TAD_stability'].append(
+                        float(tad.data['stability_1']))
+                    self.annotations['TAD_stability'].append(
+                        float(tad.data['stability_2']))
 
                 for annotation_name, annotations in tad.annotations.items():
                     self.annotations[annotation_name] = annotations
@@ -80,6 +81,12 @@ class CNV(Bed):
                         else:
                             self.annotation_distances[annotation_name].append(
                                 distance)
+
+            # get the TAD staiblity for the closest TAD boundaries (accounts for CNVs overlapping multiple boundaries)
+            minimal_distances = [i for i, distance in enumerate(self.annotation_distances['TAD_boundaries']) if distance == min(
+                self.annotation_distances['TAD_boundaries'])]
+            self.annotations['TAD_stability'] = [
+                self.annotations['TAD_stability'][idx] for idx in minimal_distances]
 
     def annotate(self, feature_type):
         """Return a vector containing the feature vector for this annotated cnv"""
@@ -136,7 +143,8 @@ class CNV(Bed):
 
         try:
             # get the maximal proportional overlap with interacting fragments of the genes in the same TAD normalized by the gene's LOEUF
-            minimal_normalized_interaction_overlap = max([gene.get_interaction_overlap(self)/float(gene.data['LOEUF']) for gene in self.annotations['genes'] if float(gene.data['LOEUF'])!=0],default=np.nan)
+            minimal_normalized_interaction_overlap = max([gene.get_interaction_overlap(
+                self) / float(gene.data['LOEUF']) for gene in self.annotations['genes'] if float(gene.data['LOEUF']) != 0], default=np.nan)
         except (ValueError, KeyError, IndexError) as e:
             pass
 
@@ -149,7 +157,8 @@ class CNV(Bed):
         if overlapping_genes.size > 0:
             try:
                 # get the minimal LOEUF score of the overlapping genes
-                LOEUF = np.nanmin([float(gene.data['LOEUF']) for gene in overlapping_genes])
+                LOEUF = np.nanmin([float(gene.data['LOEUF'])
+                                   for gene in overlapping_genes])
             except (ValueError, KeyError, IndexError) as e:
                 pass
 
@@ -167,7 +176,8 @@ class CNV(Bed):
 
             try:
                 # get the highest proportional exon overlap of all overlapping genes
-                exon_overlap = np.max([gene.get_exon_overlap(self) for gene in overlapping_genes])
+                exon_overlap = np.max([gene.get_exon_overlap(self)
+                                       for gene in overlapping_genes])
             except (ValueError, KeyError, IndexError) as e:
                 pass
         else:
@@ -184,7 +194,6 @@ class CNV(Bed):
             except (ValueError, KeyError, IndexError) as e:
                 pass
 
-
         try:
             # get overlapping enhancers
             overlapping_enhancers = np.array(self.annotations['enhancers'])[np.where(
@@ -195,13 +204,15 @@ class CNV(Bed):
         if overlapping_enhancers.size > 0:
             try:
                 # get the maximum enhancer overlap of all overlapping enhancers
-                enhancer_overlap = np.max([utils.getOverlap((self.start, self.end), (enhancer.start, enhancer.end)) / (enhancer.end - enhancer.start) for enhancer in overlapping_enhancers])
+                enhancer_overlap = np.max([utils.getOverlap((self.start, self.end), (enhancer.start, enhancer.end)) / (
+                    enhancer.end - enhancer.start) for enhancer in overlapping_enhancers])
             except (ValueError, KeyError, IndexError) as e:
                 pass
 
             try:
                 # get the maximal Phastcon value of all overlapping enhancer
-                phastcon = np.nanmin([float(enhancer.data['Phastcon']) for enhancer in overlapping_enhancers])
+                phastcon = np.nanmin([float(enhancer.data['Phastcon'])
+                                      for enhancer in overlapping_enhancers])
             except (ValueError, KeyError, IndexError) as e:
                 pass
         else:
@@ -211,7 +222,6 @@ class CNV(Bed):
             except (ValueError, KeyError, IndexError) as e:
                 pass
 
-
-
-        features = [len(overlapping_genes), len(overlapping_enhancers), min(self.annotation_distances['TAD_boundaries']), self.annotations['TAD_contact_pvalue'][np.argmin(self.annotation_distances['TAD_boundaries'])], min(self.annotation_distances['genes'], default=np.nan), min(self.annotation_distances['enhancers'], default=np.nan), min(self.annotation_distances['DDG2P'], default=np.nan), LOEUF, phastcon, HI, min(self.annotation_distances['CTCF'], default=np.nan), Log_odd_HI, exon_overlap, minimal_normalized_interaction_overlap]
+        features = [len(overlapping_genes), len(overlapping_enhancers), min(self.annotation_distances['TAD_boundaries']), max(self.annotations['TAD_stability']), min(self.annotation_distances['genes'], default=np.nan), min(
+            self.annotation_distances['enhancers'], default=np.nan), min(self.annotation_distances['DDG2P'], default=np.nan), LOEUF, phastcon, HI, min(self.annotation_distances['CTCF'], default=np.nan), Log_odd_HI, exon_overlap, minimal_normalized_interaction_overlap]
         return np.array(features, dtype=float)
