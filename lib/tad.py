@@ -18,29 +18,9 @@ class Tad(Bed):
 
     def __str__(self):
         """An object of the Tad class is representeted by the chromsome, start and end position
-        as well as the recursive representation of its genes and enhancer"""
+        as well as the recursive representation of its annotations"""
         representation = f'{self.chr}\t{self.start}\t{self.end}\n'
         for name, annotations in self.annotations.items():
-            annotation_repr = ','.join([str(annotation) for annotation in annotations])
-            representation += f'{name}:{annotation_repr}'
+            annotation_repr = '\n'.join([str(annotation) for annotation in annotations])
+            representation += f'\n{name}:\n{annotation_repr}'
         return representation
-
-    def contains_high_pLI_gene(self):
-        """Returns True if the TAD contains a gene with pLi greater or equal to 0.9.
-        This requires genes with pLI values in the range (0,1)."""
-        if self.annotations['genes']:
-            pLIs = [gene.data['pLI'] for gene in self.annotations['genes']]
-            return any(float(pLI) == 1 for pLI in pLIs if pLI != 'NA' and pLI)
-
-    def contains_highly_conserved_enhancer(self):
-        """Returns True if the TAD contains an enhancers with Phastcon value greater or equal to 0.6.
-        This is the largest threshold showing significant enrichment of pathogenic variants (GAT)."""
-        if self.annotations['enhancers']:
-            phastcons = [enhancer.data['Phastcon'] for enhancer in self.annotations['enhancers']]
-            return any(float(phastcon) >= 0.9 for phastcon in phastcons if phastcon != 'None')
-
-    def annotate(self, feature_type):
-        """Annotates the TAD with a set of features."""
-        if feature_type == 'binary':
-            self.high_pLI = self.contains_high_pLI_gene()
-            self.high_Phastcon = self.contains_highly_conserved_enhancer()

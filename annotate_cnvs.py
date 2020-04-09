@@ -1,67 +1,77 @@
-"""Load and annotate a set of CNVs"""
-#standard libraries
+"""Annotate CNVs with either a user-defined or predefined feature set."""
+# standard libraries
 import argparse
 import pickle
 import pathlib
+import yaml
 
-#own libraries
+# own libraries
+import annotate_tads
 import lib.utils as utils
 import lib.preprocessing as preprocessing
 import lib.plotting as plotting
 
-#third party libraries
+# third party libraries
 import pandas as pd
 import matplotlib.pyplot as plt
 
 def argparser():
-    parser = argparse.ArgumentParser(description="Annotate a set of CNVs. Run annotate_cnvs -h for more details.")
-    parser.add_argument('-t', '--tads',default='data/default_annotated_TADs.p',
-                        help='Path to the pickeled TAD file.')
-    parser.add_argument('-c', '--cnvs', help='Path to the CNV file.', required=True)
-    parser.add_argument('-vcf', '--vcf', action='store_true', help='Needs to be set if the CNV file is a VCF with the location at the second position.')
-    parser.add_argument('-p', '--pickle', action='store_false', help='Save annotated CNV objects as pickled file. Default is True.')
-    parser.add_argument('-csv', '--csv', action='store_false', help='Save a CSV file in additon to the pickled object. Specific features sets can be definied with -f.')
-    parser.add_argument('-pl', '--plot', action='store_true', help='Plot Distribution of features for CNV set. Default is false.')
-    parser.add_argument('-f','--features',default='extended_continuous',help='Features for the CSV file. TADs need to be annotated with the corresponding features.')
-    parser.add_argument('-o', '--output', default='./', help='Output File.')
+    parser = argparse.ArgumentParser(description="Annotate CNVs. Run annotate_cnvs -h for more details.")
+    parser.add_argument('-c', '--config', default = 'config.yml', help='Path to the config file containing TAD,CNV and annotation locations.')
+    parser.add_argument('-p', '--pickle', action='store_true', help='Save annotated CNV objects as pickled file. Default is false.')
+    parser.add_argument('-o', '--output', default='./', help='Directory for the output files.')
     return parser.parse_args()
 
 
-def run(args):
-    print('Annotating CNVs...')
-    #load annotated TAD data
-    tads = pathlib.Path(args.tads)
-    tads = pickle.load(tads.open('rb'))
-    output_path = pathlib.Path(args.output)
+def annotate(cfg):
+    # check if the TAD file is a pickle file
+    # if not the TADs need to be annoted first
 
-    #load CNVs
-    cnvs = utils.objects_from_file(args.cnvs,'CNV',vcf=args.vcf)
+    if cfg['TADS']['ANNOTATED']:
+        tads = pickle.load(pathlib.Path(cfg['TADS']['ANNOTATED']).open('rb'))
+    else:
+        tads = annotate_tads.annotate(cfg)
 
-    #create cnv dict
-    cnvs = utils.create_chr_dictionary_from_beds(cnvs)
+    # for each set of cnvs in the config file
+    # read them into a dict with chromosomes as keys
+    # and annotate each CNVs according to the TAD environment
+    annotated_cnvs = {}
+    for cnvs in cfg['CNVS']['RAW']:
+        cnv_bed = utils.objects_from_file(cfg['CNVS']['RAW'][cnvs],'CNV')
+        cnv_dict = utils.create_chr_dictionary_from_beds(cnv_bed)
+        # annotate CNVS
+        print(f'Annotate {cnvs} CNVs..')
+        annotated_cnvs[cnvs] = utils.annotate_cnvs(tads, cnv_dict)
 
-    #annotate CNVS
-    annotated_cnvs = utils.annotate_cnvs(tads,cnvs)
-    
-    #save raw CNV object as pickle file
-    with open(output_path / 'Annotated_CNVs.p', "wb") as output:
-        pickle.dump(annotated_cnvs, output)
-
-    if args.csv:
-        feature_df = preprocessing.create_feature_df(annotated_cnvs,args.features,csv=True)
-        feature_df.to_csv(output_path / 'Annotated_CNVs.csv',sep='\t',header=True,index=False)
-
-        #if args.plot:
-        #    plotting.plot_feature_dist(feature_df, exclude_features=['CHR','START','END'])
-        #    plt.savefig(output_path / 'Annotated_CNVs.png',bbox_inches='tight')
-
+    return annotated_cnvs
 
 
 def main():
-    #parse input arguments
+    # parse input arguments
     args = argparser()
 
-    run(args)
+    # read config file
+    with pathlib.Path(args.config).open() as ymlfile:
+        cfg = yaml.load(ymlfile, Loader=yaml.Loader)
+
+
+    annotated_cnvs = annotate(cfg)
+
+    # get labels depending on the feature type
+    if cfg['FEATURES'] == 'extended':
+        feature_labels = ['Number of affected Genes','Number of affected Enhancers','Boundary Distance', 'Boundary Stability', 'Gene Distance', 'Enhancer Distance', 'DDG2P Distance', 'Gene LOEUF','Enhancer conservation', 'Gene HI', 'CTCF Distance', 'HI LogOdds Score', 'Exon Overlap', 'MPOI']
+    else:
+        feature_labels = [f'{annotation} distance' for annotation in cfg['ANNOTATIONS']]
+
+    # save CNVs as csv-file and, if necessary, as pickle file,
+    output_path = pathlib.Path(args.output)
+    for label, cnvs in annotated_cnvs.items():
+        if args.pickle:
+            with open(output_path / f'Annotated_{label}.p', "wb") as output:
+                pickle.dump(cnvs, output)
+        feature_df = preprocessing.create_feature_df(cnvs,cfg['FEATURES'],feature_labels,csv=True)
+        feature_df.to_csv(output_path / f'Annotated_{label}.csv',sep='\t',header=True,index=False)
+        print(f'{label} CNVs saved in {output_path / f"Annotated_{label}.csv"}')
 
 
 if __name__ == "__main__":

@@ -13,20 +13,9 @@ import pickle
 from . import plotting
 
 
-def create_feature_df(cnv_dict, feature_type, csv=False):
+def create_feature_df(cnv_dict, feature_type, labels, csv=False):
     """Creates a pandas Dataframe containing cnvs as rows and features as columns"""
     # get features for each CNV
-    if feature_type == 'basic_binary':
-        features = ['Boundary Overlap', 'Gene Overlap', 'Enhancer Overlap']
-    if feature_type == 'extended_binary':
-        features = ['Boundary Overlap', 'Gene Overlap',
-                    'Enhancer Overlap', 'DDG2P Gene Overlap', 'CTCF Overlap']
-    if feature_type == 'basic_continuous':
-        features = ['Boundary Distance', 'Gene Distance', 'Enhancer Distance']
-    if feature_type == 'extended_continuous':
-        features = ['Number of affected Genes','Number of affected Enhancers','Boundary Distance', 'Boundary Stability', 'Gene Distance', 'Enhancer Distance', 'DDG2P Distance', 'Gene LOEUF',
-                    'Enhancer conservation', 'Gene HI', 'CTCF Distance', 'HI LogOdds Score', 'Exon Overlap', 'MPOI']
-
     cnv_features = []
     if csv:
         for chrom in cnv_dict:
@@ -35,22 +24,22 @@ def create_feature_df(cnv_dict, feature_type, csv=False):
                     cnv_features.append(
                         np.append([cnv.chr, cnv.start, cnv.end], cnv.annotate(feature_type)))
         feature_df = pd.DataFrame(data=cnv_features, columns=[
-                                  'CHR', 'START', 'END'] + features)
+                                  'CHR', 'START', 'END'] + labels)
     else:
         for chrom in cnv_dict:
             for cnv in cnv_dict[chrom]:
                 if cnv.tads:
                     cnv_features.append(cnv.annotate(feature_type))
 
-        feature_df = pd.DataFrame(data=cnv_features, columns=features)
+        feature_df = pd.DataFrame(data=cnv_features, columns=labels)
     return feature_df
 
 
-def create_stratified_training_and_test_set(cnv_dict_1, cnv_dict_2, feature_type, oneHot=False, exclude_features=[]):
+def create_stratified_training_and_test_set(cnv_dicts, feature_type, labels, oneHot=False, exclude_features=[]):
     """Splits the merged feature dataframe of two CNV sets into a training set stratified by label."""
     # create feature dataframes for both cnv dicts
-    df_0 = create_feature_df(cnv_dict_1, feature_type)
-    df_1 = create_feature_df(cnv_dict_2, feature_type)
+    df_0 = create_feature_df(cnv_dicts[0], feature_type, labels)
+    df_1 = create_feature_df(cnv_dicts[1], feature_type, labels)
 
     # exclude features
     for feature in exclude_features:

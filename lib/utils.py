@@ -27,7 +27,6 @@ def objects_from_file(path, cls_string, column_names=[], **kwargs):
     path = validate_file(path)
     bed_class = BedClass.from_str(cls_string).get_class()
 
-
     if path.suffix == '.gz':
         open_path = gzip.open(path.absolute())
     else:
@@ -38,14 +37,15 @@ def objects_from_file(path, cls_string, column_names=[], **kwargs):
     for line in open_path:
         if not type(line) == str:
             line = line.decode('utf-8')
-        #handle headers of bed CNV files
+        # handle headers of bed CNV files
         if line.startswith('##'):
             vcf = True
             continue
         if line.startswith('#'):
             column_names = line.strip().split('\t')[3:]
             continue
-        bed_objects.append(bed_class(line, column_names, **dict(kwargs,vcf=vcf)))
+        bed_objects.append(
+            bed_class(line, column_names, **dict(kwargs, vcf=vcf)))
     open_path.close()
     return bed_objects
 
@@ -60,28 +60,10 @@ def validate_file(path):
 
     # check if path is a bed or txt file
     # TODO this is just prelimenary check
-    if path.suffix not in ['.bed','.txt','.gz','.vcf']:
+    if path.suffix not in ['.bed', '.txt', '.gz', '.vcf']:
         raise Exception(f'{path} is not a bed,txt or gz file')
 
     return path
-
-
-def read_result_file(path):
-    """Load the data from a result file as a pandas dataframe.
-    Currently only a vector containing the 10-fold CV results is returned."""
-    path = pathlib.Path(path)
-
-    # check if path is a valid file
-    if not path.is_file():
-        raise Exception(f'{path} is not a valid path')
-
-    with path.open() as results:
-        for line in results:
-            if line.startswith('10'):
-                cv_avg = float(line.strip().split(':')[1])
-            elif line.startswith('non-pathogenic'):
-                support = int(line.strip().split('     ')[-1])
-    return cv_avg, support
 
 
 def create_chr_dictionary_from_beds(beds: [Bed]):
@@ -108,27 +90,30 @@ def is_in(bed_list, reference_bed):
     else:
         return False
 
-def to_bed(bed_elements,output,label=''):
+
+def to_bed(bed_elements, output, label=''):
     """Saves the input as bed file.
     The input can either be a dict with chromsomes as keys and list of bed elements as items or a list of bed elements.
     """
     if type(bed_elements) == list:
-        bedlist_to_bed(bed_elements,output,label)
+        bedlist_to_bed(bed_elements, output, label)
     elif type(bed_elements) == dict:
-        chrom_dict_to_bed(bed_elements,output,label)
+        chrom_dict_to_bed(bed_elements, output, label)
     else:
         print('The input has to be a dictionary or list with Bed elements.')
 
-def bedlist_to_bed(bedlist,output,label):
-    with open(output,'w') as output:
+
+def bedlist_to_bed(bedlist, output, label):
+    with open(output, 'w') as output:
         for bed in bedlist:
             output.write(f'{bed.chr}\t{bed.start}\t{bed.end}')
             if label:
                 output.write(f'\t{label}')
             output.write('\n')
 
-def chrom_dict_to_bed(chrom_dict,output,label):
-    with open(output,'w') as output:
+
+def chrom_dict_to_bed(chrom_dict, output, label):
+    with open(output, 'w') as output:
         for chrom in chrom_dict:
             for bed in chrom_dict[chrom]:
                 output.write(f'{bed.chr}\t{bed.start}\t{bed.end}')
@@ -137,13 +122,12 @@ def chrom_dict_to_bed(chrom_dict,output,label):
                 output.write('\n')
 
 
-
 def reduce_dict(dictionary, keys):
     """Returns a dictionary containing only the input keys"""
     return {key: (dictionary[key] if key in dictionary else []) for key in keys}
 
 
-def create_annotated_bed_dict(bed_dict, annotation_dicts, annotate=False,filter_exons=False,filter_interactions=False,feature_type='extended_continuous'):
+def create_annotated_bed_dict(bed_dict, annotation_dicts, annotate=False, gene_annotation=False, feature_type='extended'):
     """Annotates every BED flement with the overlapping annotation.
     For each BED element in a chromosome the function iterates through the sorted annotations as long as the
     start position of any of the first annotations is less than the end position of the BED element.
@@ -156,8 +140,8 @@ def create_annotated_bed_dict(bed_dict, annotation_dicts, annotate=False,filter_
         bed_dict: A dictionary with chromsomes as keys and the corresponding BED elements as values.
         annotation_dict: A list of dictionaries with chromosomes as keys and the corresponding annotation elements as values.
     """
-    # reduce genes and enhancers to chromsomes were tads are available
-    annotation_dicts = {key:reduce_dict(
+    # reduce the bed_dict to genomic locations where annotations are available
+    annotation_dicts = {key: reduce_dict(
         dictionary, bed_dict.keys()) for key, dictionary in annotation_dicts.items()}
 
     # iterate through chromsomes
@@ -169,23 +153,26 @@ def create_annotated_bed_dict(bed_dict, annotation_dicts, annotate=False,filter_
                 bed_element.annotations[annotation_name] = []
                 annotation_queue[annotation_name] = []
 
-            while any(is_in(annotation_dict[chrom],bed_element) for annotation_dict in annotation_dicts.values()):
+            while any(is_in(annotation_dict[chrom], bed_element) for annotation_dict in annotation_dicts.values()):
                 for annotation_name, annotation_dict in annotation_dicts.items():
-                    if is_in(annotation_dict[chrom],bed_element):
+                    if is_in(annotation_dict[chrom], bed_element):
                         if annotation_dict[chrom][0].end < bed_element.start:
                             annotation_dict[chrom].pop(0)
                         elif annotation_dict[chrom][0].end <= bed_element.end:
-                            bed_element.annotations[annotation_name].append(annotation_dict[chrom].pop(0))
+                            bed_element.annotations[annotation_name].append(
+                                annotation_dict[chrom].pop(0))
                         elif annotation_dict[chrom][0].end > bed_element.end:
-                            bed_element.annotations[annotation_name].append(annotation_dict[chrom][0])
-                            annotation_queue[annotation_name].append(annotation_dict[chrom].pop(0))
+                            bed_element.annotations[annotation_name].append(
+                                annotation_dict[chrom][0])
+                            annotation_queue[annotation_name].append(
+                                annotation_dict[chrom].pop(0))
 
-            annotation_dict[chrom] = annotation_queue[annotation_name] + annotation_dict[chrom]
+            annotation_dict[chrom] = annotation_queue[annotation_name] + \
+                annotation_dict[chrom]
             if annotate:
                 bed_element.annotate(feature_type)
-            if filter_exons:
+            if gene_annotation:
                 bed_element.filter_exons()
-            if filter_interactions:
                 bed_element.filter_interactions()
 
     return bed_dict
@@ -201,16 +188,15 @@ def annotate_cnvs(tad_dict, cnv_dict):
         4. Tne CNVs starts before the TAD but ends after it -> append the TAD to the CNV, keep it in the CNV dict.
     """
     # reduce the cnvs to chromsomes were tads are available
-    cnv_dict = reduce_dict(cnv_dict,tad_dict.keys())
-
+    cnv_dict = reduce_dict(cnv_dict, tad_dict.keys())
     # create empty list
     annotated_cnvs = []
 
-    #iterate through CNVs one chromsome at a time
+    # iterate through CNVs one chromsome at a time
     for chrom in cnv_dict:
         for tad in tad_dict[chrom]:
             cnv_queue = []
-            while is_in(cnv_dict[chrom],tad):
+            while is_in(cnv_dict[chrom], tad):
                 if cnv_dict[chrom][0].end <= tad.end and cnv_dict[chrom][0].end >= tad.start:
                     cnv_dict[chrom][0].tads.append(tad)
                     annotated_cnvs.append(cnv_dict[chrom].pop(0))
@@ -225,21 +211,24 @@ def annotate_cnvs(tad_dict, cnv_dict):
     return create_chr_dictionary_from_beds(annotated_cnvs)
 
 
-def getOverlap(interval_a,interval_b):
+def getOverlap(interval_a, interval_b):
     """Returns the overlap of two intervals"""
-    return max(0,min(interval_a[1],interval_b[1])-max(interval_a[0],interval_b[0]))
+    return max(0, min(interval_a[1], interval_b[1]) - max(interval_a[0], interval_b[0]))
 
-def getDistance(interval_a,interval_b):
+
+def getDistance(interval_a, interval_b):
     """Returns the distance between two intervals"""
-    return max(interval_a[0]-interval_b[1],interval_b[0]-interval_a[1])
+    return max(interval_a[0] - interval_b[1], interval_b[0] - interval_a[1])
 
-def phi_coeff(array_1,array_2):
+
+def phi_coeff(array_1, array_2):
     """Implementation of the phi coefficient computation."""
-    cont_tab = pd.crosstab(array_1,array_2)
+    cont_tab = pd.crosstab(array_1, array_2)
     print(cont_tab)
-    return (cont_tab[1][1]*cont_tab[0][0] - cont_tab[0][1]*cont_tab[1][0])/np.sqrt(sum(cont_tab[0])*sum(cont_tab[1])*sum(cont_tab[:][1])*sum(cont_tab[:][0]))
+    return (cont_tab[1][1] * cont_tab[0][0] - cont_tab[0][1] * cont_tab[1][0]) / np.sqrt(sum(cont_tab[0]) * sum(cont_tab[1]) * sum(cont_tab[:][1]) * sum(cont_tab[:][0]))
 
-def partial_corr(features,feature_type):
+
+def partial_corr(features, feature_type):
     """
     Returns the sample linear partial correlation coefficients between pairs of variables in the feature dataframe, controlling
     for the remaining variables in the dataframe. The implementation is based on https://gist.github.com/fabianp/9396204419c7b638d38f.
@@ -257,7 +246,7 @@ def partial_corr(features,feature_type):
 
     for i in range(p):
         P_corr[i, i] = 1
-        for j in range(i+1, p):
+        for j in range(i + 1, p):
             idx = np.ones(p, dtype=np.bool)
             idx[i] = False
             idx[j] = False
@@ -271,6 +260,7 @@ def partial_corr(features,feature_type):
             P_corr[j, i] = corr
     return P_corr
 
+
 def oob_classifier_accuracy(pipeline, X, y):
     """
     Compute out-of-bag (OOB) accuracy for a scikit-learn random forest
@@ -281,12 +271,15 @@ def oob_classifier_accuracy(pipeline, X, y):
     n_classes = len(np.unique(y))
     predictions = np.zeros((n_samples, n_classes))
     for tree in pipeline['cls'].estimators_:
-        unsampled_indices = _generate_unsampled_indices(tree.random_state, n_samples, n_samples)
-        tree_preds = tree.predict_proba(pipeline[0:2].fit_transform(X[unsampled_indices, :]))
+        unsampled_indices = _generate_unsampled_indices(
+            tree.random_state, n_samples, n_samples)
+        tree_preds = tree.predict_proba(
+            pipeline[0:2].fit_transform(X[unsampled_indices, :]))
         predictions[unsampled_indices] += tree_preds
 
     predicted_class_indexes = np.argmax(predictions, axis=1)
-    predicted_classes = [pipeline['cls'].classes_[i] for i in predicted_class_indexes]
+    predicted_classes = [pipeline['cls'].classes_[i]
+                         for i in predicted_class_indexes]
 
     oob_score = np.mean(y == predicted_classes)
     return oob_score

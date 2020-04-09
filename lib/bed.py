@@ -1,7 +1,8 @@
 """
-A basic class to handle elements in BED files. This class serves as a parent class for TADs, Enhancer and genes.
+A basic class to handle elements in BED files. This class serves as a parent class for TADs, CNVS and genes.
 This class assumes that the line passed to the constructor contains at least the following elements in this exact format:
 chr \t  start \t  end
+Additonal columns are passed to the data attribute.
 """
 
 class Bed:

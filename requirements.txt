@@ -1,7 +1,7 @@
 pandas
 scipy
 sklearn
-imblearn
+pyyaml
 matplotlib
 seaborn
 networkx

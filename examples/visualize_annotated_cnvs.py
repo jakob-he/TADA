@@ -2,68 +2,51 @@
 
 # standard libraries
 import argparse
-import pickle
 import pathlib
 import numpy as np
+import pandas as pd
+
+# own libraries
+from lib import plotting
 
 # plotting
 import matplotlib.pyplot as plt
-import seaborn as sns
 
 
 def argparser():
     parser = argparse.ArgumentParser(description="Visualize annotated CNVs.")
-    parser.add_argument('-c', '--cnvs', nargs="+", default='annotated_CNVs.p',
-                        help='Path to the pickeled CNV file')
+    parser.add_argument('-c1', '--cnvs_1',
+                        help='Path to the first CNV csv-file', required=True)
+    parser.add_argument('-c2', '--cnvs_2',
+                        help='Path to the second CNV csv-file', required=True)
+    parser.add_argument('-o', '--output',
+                        help='Output path for generated figure.', required=True)
     return parser.parse_args()
 
 
 def main():
     # parse input arguments
     args = argparser()
+    cnv_1_file_path = pathlib.Path(args.cnvs_1)
+    cnv_2_file_path = pathlib.Path(args.cnvs_2)
 
-    colors = ['red','green']
-
-    sns.set_style("ticks")
-    sns.set_context("paper")
-    sns.set_palette("Paired")
-    plt.figure()
-    for idx, cnv_set in enumerate(args.cnvs):
-            cnv_counter = 0
-            # load annotated CNV data
-            cnv_path = pathlib.Path(cnv_set)
-            cnv_set = pickle.load(cnv_path.open('rb'))
-
-            #Iterate through every cnv and get the distance to the closest gene/enhancer
-            gene_distances = []
-            enhancer_distances = []
-            boundary_breaking = []
-            for chrom in cnv_set:
-                for cnv in cnv_set[chrom]:
-                    if cnv.tads and cnv.gene_distances and cnv.enhancer_distances:
-                        cnv_counter+=1
-                        gene_distances.append(cnv.gene_distances[0])
-                        enhancer_distances.append(cnv.enhancer_distances[0])
-                        boundary_breaking.append(cnv.boundary_spanning)
-
-            #plot the gene_distances
-            gene_distances = [np.log10(value) if value!=0 else value for value in gene_distances]
-            print(max(gene_distances))
-            sns.kdeplot(gene_distances,label=f'Gene distance {cnv_path.stem} (N={cnv_counter})').set(xlim=(0))
-
-            #plot the enhancer_distances
-            gene_distances = [np.log10(value) if value!=0 else value for value in enhancer_distances]
-            sns.kdeplot(gene_distances,label=f'Enhancer distance {cnv_path.stem}').set(xlim=(0))
+    # read annotated CNV dataframes
+    cnvs_1 = pd.read_csv(cnv_1_file_path,header=0,index_col=False,sep='\t')
+    cnvs_2 = pd.read_csv(cnv_2_file_path,header=0,index_col=False,sep='\t')
 
 
+    # add label columns to both dataframes
+    cnvs_1['label'] = np.repeat(['Non Pathogenic'],cnvs_1.shape[0])
+    cnvs_2['label'] = np.repeat(['Pathogenic'],cnvs_2.shape[0])
 
+    # concatenate the two dataframes
+    merged_cnvs = pd.concat([cnvs_1,cnvs_2])
 
-    plt.legend()
-    plt.xlabel('Distance log10(bp)')
-    sns.despine(top=True,right=True)
-    plt.show()
+    # plot distrubtion by label exlucding the location columns
+    plotting.plot_feature_dist(merged_cnvs,exclude_features=['CHR','START','END'],by='label')
 
-
+    # save fig to output location
+    plt.savefig(pathlib.Path(args.output) / 'feature_dist.png',bbox_inches='tight')
 
 
 if __name__ == "__main__":
