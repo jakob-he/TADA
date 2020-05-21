@@ -1,10 +1,8 @@
-pandas
 scipy
+numpy
+pandas
 sklearn
-imblearn
 matplotlib
 seaborn
+pyyaml
 networkx
-sphinx
-ipykernel
-nbsphinx

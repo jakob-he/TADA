@@ -1,0 +1,26 @@
+TADS:
+  RAW: "data/Dixon_2015_stability_formatted_TADs.bed"
+  ANNOTATED:
+
+ANNOTATIONS:
+  GENES: "data/gnomad_genes_pli_loeuf_HI.bed"
+  EXONS: "data/HAVANA_exon.merged.bed.gz"
+  ENHANCERS: "data/fantom5_enhancer_phastcon_average.bed"
+  CTCF: "data/H1_hESC_CTCF_peaks_idr_optimal.bed"
+  DDG2P: "data/DDG2P_genes.bed"
+  POINT: "data/extracted_po_pairs.bed"
+
+CNVS:
+  RAW:
+    TEST_PATHOGENIC: "tests/test_data/test_cnvs_patho.bed"
+    TEST_NON_PATHOGENIC: tests/test_data/test_cnvs_nonpatho.bed
+  ANNOTATED:
+
+
+FEATURES: "extended"
+
+CLASSIFIER: "rf"
+
+KWARGS:
+
+PRETRAINED_MODEL:

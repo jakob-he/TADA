@@ -1,33 +1,36 @@
 """Test the annotation of CNVs"""
 import unittest
 import pickle
-import lib.utils as utils
+import pathlib
+import yaml
+
+import tada.lib.utils as utils
+import tada.lib.preprocessing as preprocessing
+from tada.annotate_cnvs import annotate
+
 
 
 class CnvAnnotationTest(unittest.TestCase):
     """Test class for the annotation of CNVs"""
 
     def test_annotation(self):
-        tad_beds = utils.objects_from_file('tests/test_data/test_tads.bed', 'TAD')
-        enhancer_beds = utils.objects_from_file('tests/test_data/test_enhancer.bed', 'Bed',column_names=['ID'])
-        gene_beds = utils.objects_from_file('tests/test_data/test_genes.bed', 'Bed',column_names=['name'])
+        utils.blockPrint()
+        # read config file
+        with pathlib.Path("tests/test_config_cnvs.yml").open() as ymlfile:
+            cfg = yaml.load(ymlfile, Loader=yaml.Loader)
 
-        # create dict with chromsomes as keys
-        gene_dict = utils.create_chr_dictionary_from_beds(gene_beds)
-        enhancer_dict = utils.create_chr_dictionary_from_beds(enhancer_beds)
-        tad_dict = utils.create_chr_dictionary_from_beds(tad_beds)
+        output_dir = "tests/test_data"
 
-        # Annotate TADs with overlapping enhancer and genes
-        annotated_tads = utils.create_annotated_tad_dict(tad_dict, {'enhancers':enhancer_dict,'genes':gene_dict})
+        annotated_cnvs = annotate(cfg)
 
-        #load cnvs
-        cnv_beds = utils.objects_from_file("tests/test_data/test_cnvs_nonpatho.bed", 'cnv')
-
-        #create cnv dict
-        cnv_dict = utils.create_chr_dictionary_from_beds(cnv_beds)
-
-        #annotate cnvs
-        annotated_cnvs = utils.annotate_cnvs(annotated_tads,cnv_dict)
-
-        self.assertEqual(len(annotated_cnvs['chr2'][0].tads),1,'Annotation of TADs does not work!')
-        self.assertEqual(len(annotated_cnvs['chr1'][0].tads[0].annotations['genes']),2,'Genes are not transferred to the CNV object!')
+        #save annotated cnvs
+        output_path = pathlib.Path(output_dir)
+        for label, cnvs in annotated_cnvs.items():
+            with open(output_path / f'Annotated_{label}.p', "wb") as output:
+                pickle.dump(cnvs, output)
+        feature_labels = ['Number of affected Genes','Number of affected Enhancers','Boundary Distance', 'Boundary Stability', 'Gene Distance', 'Enhancer Distance', 'DDG2P Distance', 'Gene LOEUF','Enhancer conservation', 'Gene HI', 'CTCF Distance', 'HI LogOdds Score', 'Exon Overlap', 'MPOI']
+        feature_df = preprocessing.create_feature_df(cnvs,cfg['FEATURES'],feature_labels,csv=True)
+        feature_df.to_csv(output_path / f'Annotated_{label}.csv',sep='\t',header=True,index=False)
+        utils.enablePrint()
+        self.assertEqual(len(annotated_cnvs['TEST_PATHOGENIC']['chr2'][0].tads),1,'Annotation of TADs does not work!')
+        self.assertEqual(len(annotated_cnvs['TEST_PATHOGENIC']['chr2'][0].tads[0].annotations['GENES']),17,'Genes are not transferred to the CNV object!')
