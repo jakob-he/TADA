@@ -1,10 +1,7 @@
-pandas
 scipy
+numpy
+pandas
 sklearn
-pyyaml
 matplotlib
 seaborn
-networkx
-sphinx
-ipykernel
-nbsphinx
+pyyaml

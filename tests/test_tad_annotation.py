@@ -1,25 +1,29 @@
 """Test the annotation of sample TADs"""
 import unittest
-import lib.utils as utils
+import pickle
+import pathlib
+import yaml
+
+import tada.lib.utils as utils
+import tada.lib.preprocessing as preprocessing
+from tada.annotate_tads import annotate
 
 class TadAnnotationTest(unittest.TestCase):
     """Test class for the annotation of TADs"""
 
     def test_annotation(self):
-        tad_beds = utils.objects_from_file('tests/test_data/test_tads.bed', 'TAD')
-        enhancer_beds = utils.objects_from_file('tests/test_data/test_enhancer.bed', 'Bed',['ID'])
-        gene_beds = utils.objects_from_file('tests/test_data/test_genes.bed', 'Bed',['name'])
+        utils.blockPrint()
+        # read config file
+        with pathlib.Path("tests/test_config_tads.yml").open() as ymlfile:
+            cfg = yaml.load(ymlfile, Loader=yaml.Loader)
 
-        # create dict with chromsomes as keys
-        gene_dict = utils.create_chr_dictionary_from_beds(gene_beds)
-        enhancer_dict = utils.create_chr_dictionary_from_beds(enhancer_beds)
-        tad_dict = utils.create_chr_dictionary_from_beds(tad_beds)
+        output_dir = pathlib.Path("tests/test_data")
 
-        #test dict creation
-        self.assertEqual(len(tad_dict),4,'The conversion to dictionaries is not working!')
+        annotated_tads = annotate(cfg)
 
-        # Annotate TADs with overlapping enhancer and genes
-        annotated_tads = utils.create_annotated_tad_dict(tad_dict, {'enhancers':enhancer_dict,'genes':gene_dict})
-
-        self.assertEqual(len(annotated_tads['chr1'][0].annotations['genes']),2,'TAD annotation with genes is not working!')
-        self.assertEqual(len(annotated_tads['chr1'][0].annotations['enhancers']),2),'TAD annoation with enhancer is not working!'
+        #save annotated tads
+        with open(output_dir / 'Annotated_TADs.p', 'wb') as output:
+            pickle.dump(annotated_tads, output)
+        utils.enablePrint()
+        self.assertEqual(len(annotated_tads['chr1'][0].annotations['GENES']),62,'TAD annotation is not working!')
+        self.assertEqual(len(annotated_tads['chr1'][0].annotations['ENHANCERS']),111),'TAD annoation is not working!'
