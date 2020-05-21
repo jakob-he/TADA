@@ -29,7 +29,8 @@ setup(name='tada',
         'sklearn',
         'matplotlib',
         'seaborn',
-        'pyyaml'
+        'pyyaml',
+        'networkx'
       ],
       include_package_data=True,
       zip_safe=False)
