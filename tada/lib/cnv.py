@@ -62,8 +62,12 @@ class CNV(Bed):
                         float(tad.data['stability_2']))
 
                 for annotation_name, annotations in tad.annotations.items():
-                    self.annotations[annotation_name] = annotations
-                    self.annotation_distances[annotation_name] = []
+                    if not annotation_name in self.annotations:
+                        self.annotations[annotation_name] = annotations
+                        self.annotation_distances[annotation_name] = []
+                    else:
+                        self.annotations[annotation_name].extend(annotations)
+
                     for annotation in annotations:
                         overlap = utils.getOverlap([self.start, self.end], [
                                                    annotation.start, annotation.end])
@@ -139,9 +143,9 @@ class CNV(Bed):
             try:
                 HIs = [float(gene.data['HI']) for gene in overlapping_genes]
                 HSs = [1 - hi for hi in HIs]
-                HI_division = np.divide(1 - np.prod(HSs), np.prod(HSs))
                 # compute the HI log Odds score
-                if HI_division != 0:
+                HI_division = np.divide(1 - np.prod(HSs), np.prod(HSs), where=np.prod(HSs)!=0)
+                if HI_division != 0 and HI_division != np.inf:
                     Log_odd_HI = np.log(HI_division)
                 # get the maximum probability of being haploinsufficient for the overlapping gnes
                 HI = np.nanmax(HIs)
