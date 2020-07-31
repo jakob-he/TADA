@@ -4,7 +4,7 @@ TADA
 Introduction
 ------------
 
-The TAD annotation (TADA) tools is designed to annotate CNVs based on functional annotation with respect to their regulatory context i.e. TADs. TADA allows to determine the functional impact of CNVs either by annotation and manual filtering or automated classification. The default Random Forest models are trained on curated sets of pathogenic and non-pathogenic variants (see our preprint for details (https://www.biorxiv.org/content/10.1101/2020.06.30.180711v1.abstract)). New CNVs can therefore be annotated with the probability of being pathogenic i.e. a *pathogenicity score*. A simplified workflow of TADA is shown in the figure below.
+The TAD annotation (TADA) tools is designed to annotate CNVs based on functional annotation with respect to their regulatory context i.e. TADs. TADA allows to determine the functional impact of CNVs either by annotation and manual filtering or automated classification. The default Random Forest models are trained on curated sets of pathogenic and non-pathogenic variants. New CNVs can therefore be annotated with the probability of being pathogenic i.e. a *pathogenicity score*. A simplified workflow of TADA is shown in the figure below. Also, a more comprehensive description of TADA including the pretrained model and feature set is provided in our preprint: https://www.biorxiv.org/content/10.1101/2020.06.30.180711v1. 
 
 .. figure:: TADA_Workflow.jpg
    :scale: 30 %
