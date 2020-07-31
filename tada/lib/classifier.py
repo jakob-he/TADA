@@ -60,7 +60,7 @@ tuned_parameters_dict = {'lr':
                           'cls__C': 0.1,
                           'cls__penalty': "l1"},
                          'rf':
-                         {'cls__max_depth': None,
+                         {'cls__max_depth': 50,
                              'cls__max_features': 'auto',
                              'cls__min_samples_leaf': 5,
                              'cls__min_samples_split': 4,
@@ -252,7 +252,7 @@ class Classifier():
                 with open(pathlib.Path(output_dir) /'ROC_scores.txt','w') as test_output:
                     roc_scores = [f"{test_set[1].values[idx]}\t{pred}" for idx, pred in enumerate(y_pred_scores)]
                     test_output.write("\n".join(roc_scores))
-            
+
             # report classification metrics
             print(
                 f'ROC AUC on test-set: {roc_auc_score(test_set[1],y_pred_scores)}')
