@@ -28,7 +28,8 @@ def annotate(cfg):
     # if not the TADs need to be annoted first
 
     if cfg['TADS']['ANNOTATED']:
-        tads = pickle.load(pathlib.Path(cfg['TADS']['ANNOTATED']).open('rb'))
+        with pathlib.Path(cfg['TADS']['ANNOTATED']).open('rb') as annotated_tads:
+            tads = pickle.load(annotated_tads)
     else:
         tads = annotate_tads.annotate(cfg)
 

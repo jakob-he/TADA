@@ -43,7 +43,8 @@ def run(args):
     else:
         # check if the preannotated TADs are available
         if cfg['TADS']['ANNOTATED']:
-            tads = pickle.load(pathlib.Path(cfg['TADS']['ANNOTATED']).open('rb'))
+            with pathlib.Path(cfg['TADS']['ANNOTATED']).open('rb') as annotated_tads:
+                tads = pickle.load(annotated_tads)
         else:
             tads = annotate_tads.annotate(cfg)
         cnv_dicts = [cnvs for label,

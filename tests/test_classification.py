@@ -1,4 +1,7 @@
 """Test the training of a classifier"""
+import io
+import sys
+
 import unittest
 import pathlib
 import pickle
@@ -14,7 +17,8 @@ class ClassifierTrainingTest(unittest.TestCase):
     """Test class for the training of a classifier"""
 
     def test_classification(self):
-        utils.blockPrint()
+        capturedOutput = io.StringIO()
+        sys.stdout = capturedOutput
         # read config file
         with pathlib.Path("tests/test_config_cls.yml").open() as ymlfile:
             cfg = yaml.load(ymlfile, Loader=yaml.Loader)
@@ -33,5 +37,5 @@ class ClassifierTrainingTest(unittest.TestCase):
         lr = Classifier(classifier=cfg['CLASSIFIER'])
         lr.train(train_set, output_dir=output_dir, permut_importance=False, gridcv=False)
         lr.test(test_set, save=False, plot=False, output_dir=output_dir)
-        utils.enablePrint()
+        sys.stdout = sys.__stdout__
         self.assertEqual(lr.trained,True,'Annotation of TADs does not work!')

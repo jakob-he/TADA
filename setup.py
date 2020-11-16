@@ -23,14 +23,15 @@ setup(name='tada',
         ]
     },
       install_requires=[
-        'scipy',
-        'numpy',
-        'pandas',
-        'sklearn',
-        'matplotlib',
-        'seaborn',
-        'pyyaml',
-        'networkx'
+        'scipy==1.3.1',
+        'numpy==1.17.0',
+        'pandas==1.1.4',
+        'sklearn==0.0',
+        'matplotlib==3.1.1',
+        'seaborn==0.9.0',
+        'pyyaml==5.3.1',
+        'networkx==2.3',
+        'scikit-learn==0.21.3'
       ],
       include_package_data=True,
       zip_safe=False)

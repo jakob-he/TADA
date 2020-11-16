@@ -1,6 +1,6 @@
 TADS:
   RAW: "data/Dixon_2015_stability_formatted_TADs.bed"
-  ANNOTATED: "data/Default_Annotated_TADS.p"
+  ANNOTATED: "data/Annotated_Default_TADs.p"
 
 ANNOTATIONS:
   GENES: "data/gnomad_genes_pli_loeuf_HI.bed"
@@ -12,8 +12,8 @@ ANNOTATIONS:
 
 CNVS:
   RAW:
-    NON_PATHOGENIC:
-    PATHOGENIC:
+    NON_PATHOGENIC: "/home/jakob/Documents/TADA/CNVs/merged_gnomad_DGV.DUP.no_overlap.size_matched.bed"
+    PATHOGENIC: "/home/jakob/Documents/TADA/CNVs/unkown_likely_and_pathogenic_variants_filtered.unique.no_overlap.DUP.size_matched.bed"
   ANNOTATED:
     NON_PATHOGENIC:
     PATHOGENIC:
@@ -30,4 +30,4 @@ KWARGS:
   n_estimators: 300
   oob_score: True
 
-PRETRAINED_MODEL: "data/rf_model_dup.p"
+PRETRAINED_MODEL:
