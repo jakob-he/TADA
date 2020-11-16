@@ -19,13 +19,6 @@ from sklearn.metrics import r2_score
 
 import sys, os
 
-# Disable Print
-def blockPrint():
-    sys.stdout = open(os.devnull, 'w')
-
-# Restore
-def enablePrint():
-    sys.stdout = sys.__stdout__
 
 
 def objects_from_file(path, cls_string, column_names=[], **kwargs):
