@@ -1,16 +1,16 @@
 language: python
 
-branches:
-  only:
-    - master
 
-language: python
+before_install:
+  - python --version
+  - pip install -U pip
+  - pip install -U pytest
 
 python:
   - "3.6"
 
 install:
-  - pip install -r requirements.txt
+- pip install ".[test]" . # install package + test dependencies
 
 script:
-  - python tests/test.py unit
+  - pytest
