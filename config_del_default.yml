@@ -12,8 +12,8 @@ ANNOTATIONS:
 
 CNVS:
   RAW:
-    NON_PATHOGENIC: "/home/jakob/Documents/TADA/CNVs/merged_gnomad_eichler_biobank_DGV.DEL.no_overlap.size_matched.bed"
-    PATHOGENIC: "/home/jakob/Documents/TADA/CNVs/unkown_likely_and_pathogenic_variants_filtered.unique.no_overlap.DEL.size_matched.bed"
+    NON_PATHOGENIC:
+    PATHOGENIC:
   ANNOTATED:
     NON_PATHOGENIC:
     PATHOGENIC:
