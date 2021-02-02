@@ -106,3 +106,7 @@ The training of a classification model is an advanced use of TADA. In addition t
 
 The *fs* option allows to produce multiple visualizations for feature selection. The visualizations include the permutation based feature importance and a partial correlation based node graph.
 If required the classification run can be executed with the *gridcv* option to find an optimal parameter set. For reproducability the *rs* option can be set to a specific integer.
+
+Testing with ClinVar Data
+*************************
+We provide two datasets for deletions and duplication comprised of ClinVar variants that can be used for getting familiar with TADA. There are two preset configs for this purpose - *config_del_clinvar.yml* and *config_dup_clinvar*. These config file can be used for the *annotate_cnvs*, *predict_variants* and *classification_run* commands.
