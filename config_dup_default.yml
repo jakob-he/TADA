@@ -12,11 +12,9 @@ ANNOTATIONS:
 
 CNVS:
   RAW:
-    NON_PATHOGENIC:
-    PATHOGENIC: 
+    TEST:
   ANNOTATED:
-    NON_PATHOGENIC:
-    PATHOGENIC:
+    TEST:
 
 FEATURES: "extended"
 
@@ -30,4 +28,4 @@ KWARGS:
   n_estimators: 300
   oob_score: True
 
-PRETRAINED_MODEL:
+PRETRAINED_MODEL: "data/rf_model_dup.p"
