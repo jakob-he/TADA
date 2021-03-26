@@ -29,7 +29,7 @@ setup(name='tada',
         'sklearn==0.0',
         'matplotlib==3.1.1',
         'seaborn==0.9.0',
-        'pyyaml==5.3.1',
+        'pyyaml==5.4',
         'networkx==2.3',
         'scikit-learn==0.21.3'
       ],
