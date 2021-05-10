@@ -28,10 +28,11 @@ def argparser():
 def predict(cfg, output):
     # check if pickled preannotated CNVs files are available
     if any(cfg['CNVS']['ANNOTATED'].values()):
-        cnv_dicts = []
+        cnv_dicts = {}
         for label, cnvs in cfg['CNVS']['ANNOTATED'].items():
             with pathlib.Path(cnvs).open('rb') as cnv_dict:
-                cnv_dicts.append(pickle.load(cnv_dict))
+                cnv_dicts[label] = pickle.load(cnv_dict)
+        labeled_cnv_dicts = cnv_dicts.items()
     else:
         # check if the preannotated TADs are available
         if cfg['TADS']['ANNOTATED']:
