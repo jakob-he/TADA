@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(name='tada',
-      version='0.2',
+      version='1.0.0',
       description='Annotation of TADs and CNVs',
       long_description='This package allows to annotate CNVs with annotations expressing their functional impact. Based on the functional annotation, a classifier can be trained and used to prioritze CNVs.',
       classifiers=[
