@@ -9,8 +9,8 @@ import yaml
 
 import numpy as np
 
-import tada.lib.preprocessing as preprocessing
-import tada.lib.utils as utils
+import tadacnv.lib.preprocessing as preprocessing
+import tadacnv.lib.utils as utils
 
 class TestPathogencityPrediction(unittest.TestCase):
     """Class to test pathogencity prediction"""

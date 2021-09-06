@@ -7,11 +7,11 @@ import pickle
 import pathlib
 import yaml
 
-import tada.lib.utils as utils
-import tada.lib.preprocessing as preprocessing
-from tada.annotate_tads import annotate
+import tadacnv.lib.utils as utils
+import tadacnv.lib.preprocessing as preprocessing
+from tadacnv.annotate_tads import annotate
 
-class TadAnnotationTest(unittest.TestCase):
+class tadacnvnnotationTest(unittest.TestCase):
     """Test class for the annotation of TADs"""
 
     def test_annotation(self):

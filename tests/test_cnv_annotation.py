@@ -7,9 +7,9 @@ import pickle
 import pathlib
 import yaml
 
-import tada.lib.utils as utils
-import tada.lib.preprocessing as preprocessing
-from tada.annotate_cnvs import annotate
+import tadacnv.lib.utils as utils
+import tadacnv.lib.preprocessing as preprocessing
+from tadacnv.annotate_cnvs import annotate
 
 
 

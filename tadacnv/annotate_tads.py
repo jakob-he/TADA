@@ -6,8 +6,8 @@ import pathlib
 import yaml
 
 # own libraries
-from tada.lib.tad import Tad
-import tada.lib.utils as utils
+from tadacnv.lib.tad import Tad
+import tadacnv.lib.utils as utils
 
 
 def argparser():

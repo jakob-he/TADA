@@ -7,9 +7,9 @@ import pathlib
 import pickle
 import yaml
 
-import tada.lib.utils as utils
-import tada.lib.preprocessing as preprocessing
-from tada.lib.classifier import Classifier
+import tadacnv.lib.utils as utils
+import tadacnv.lib.preprocessing as preprocessing
+from tadacnv.lib.classifier import Classifier
 
 
 

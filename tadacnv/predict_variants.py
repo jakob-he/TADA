@@ -6,10 +6,10 @@ import numpy as np
 import yaml
 
 # own libraries
-import tada.annotate_tads as annotate_tads
-import tada.annotate_cnvs as annotate_cnvs
-import tada.lib.preprocessing as preprocessing
-import tada.lib.utils as utils
+import tadacnv.annotate_tads as annotate_tads
+import tadacnv.annotate_cnvs as annotate_cnvs
+import tadacnv.lib.preprocessing as preprocessing
+import tadacnv.lib.utils as utils
 
 # plotting
 import seaborn as sns

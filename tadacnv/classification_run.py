@@ -6,11 +6,11 @@ import numpy as np
 import yaml
 
 # own libraries
-import tada.annotate_tads as annotate_tads
-import tada.annotate_cnvs as annotate_cnvs
-import tada.lib.plotting as plotting
-import tada.lib.preprocessing as preprocessing
-from tada.lib.classifier import Classifier
+import tadacnv.annotate_tads as annotate_tads
+import tadacnv.annotate_cnvs as annotate_cnvs
+import tadacnv.lib.plotting as plotting
+import tadacnv.lib.preprocessing as preprocessing
+from tadacnv.lib.classifier import Classifier
 
 
 def argparser():

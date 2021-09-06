@@ -6,10 +6,10 @@ import pathlib
 import yaml
 
 # own libraries
-import tada.annotate_tads as annotate_tads
-import tada.lib.utils as utils
-import tada.lib.preprocessing as preprocessing
-import tada.lib.plotting as plotting
+import tadacnv.annotate_tads as annotate_tads
+import tadacnv.lib.utils as utils
+import tadacnv.lib.preprocessing as preprocessing
+import tadacnv.lib.plotting as plotting
 
 # third party libraries
 import pandas as pd
