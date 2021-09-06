@@ -14,7 +14,7 @@ import pandas as pd
 from scipy import stats, linalg
 
 # sklearn
-from sklearn.ensemble.forest import _generate_unsampled_indices
+from sklearn.ensemble._forest import _generate_unsampled_indices
 from sklearn.metrics import r2_score
 
 import sys, os
