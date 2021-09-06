@@ -1,6 +1,9 @@
 TADA
 ====
 
+.. image:: https://img.shields.io/badge/pypi-v1.0.0-blue
+    :target: https://pypi.org/project/tadacnv/
+
 Introduction
 ------------
 
