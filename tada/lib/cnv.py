@@ -45,6 +45,10 @@ class CNV(Bed):
         """Calculates the distance and overlap for each annotation in the same TAD as the CNV."""
         self.annotation_distances['TAD_boundaries'] = []
         self.annotations['TAD_stability'] = []
+        self.annotation_distances['GENES'] = []
+        self.annotation_distances['DDG2P'] = []
+        self.annotation_distances['CTCF'] = []
+        self.annotation_distances['ENHANCERS'] = []
         if self.tads:
             for tad in self.tads:
                 boundary_overlaps = [self.start <
@@ -200,6 +204,6 @@ class CNV(Bed):
             except (ValueError, KeyError, IndexError) as e:
                 pass
 
-        features = [len(overlapping_genes), len(overlapping_enhancers), min(self.annotation_distances['TAD_boundaries']), max(self.annotations['TAD_stability']), min(self.annotation_distances['GENES'], default=np.nan), min(
+        features = [len(overlapping_genes), len(overlapping_enhancers), min(self.annotation_distances['TAD_boundaries'], default=np.nan), max(self.annotations['TAD_stability'], default=np.nan), min(self.annotation_distances['GENES'], default=np.nan), min(
             self.annotation_distances['ENHANCERS'], default=np.nan), min(self.annotation_distances['DDG2P'], default=np.nan), LOEUF, phastcon, HI, min(self.annotation_distances['CTCF'], default=np.nan), Log_odd_HI, exon_overlap, minimal_normalized_interaction_overlap]
         return np.array(features, dtype=float)

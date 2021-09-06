@@ -63,7 +63,7 @@ def create_stratified_training_and_test_set(cnv_dicts, feature_type, labels, one
 
     # define X and y
     X = df_merged.loc[:, df_merged.columns != 'label']
-
+    
     if oneHot:
         X = df_merged.loc[:, df_merged.columns != 'label'].values
         Y = df_merged['label'].values.reshape(-1, 1)

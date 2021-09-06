@@ -65,9 +65,9 @@ def run(args):
 
     # create multiple figures for the purpose of feature slection, if needed
     if args.feature_selection:
-        lr.feature_selection(train_set, cfg['FEATURES'], output_dir=args.output)
+       lr.feature_selection(train_set, cfg['FEATURES'], output_dir=args.output)
 
-    # train a model and test in on a seperate test set
+    #train a model and test in on a seperate test set
     lr.train(train_set, output_dir=args.output, permut_importance=args.feature_selection, gridcv=args.grid_cv)
     lr.test(test_set, save=False, plot=True, output_dir=args.output)
 

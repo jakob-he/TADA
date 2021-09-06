@@ -54,7 +54,6 @@ def predict(cfg, output):
     for label, annotated_cnvs in labeled_cnv_dicts:
         # get feature df
         feature_df = preprocessing.create_feature_df(annotated_cnvs, cfg['FEATURES'],feature_labels, csv=True)
-
         # drop genomic location for prediction
         predict_df = feature_df.drop(['CHR', 'START', 'END'],axis=1)
 

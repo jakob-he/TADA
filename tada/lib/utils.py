@@ -20,7 +20,6 @@ from sklearn.metrics import r2_score
 import sys, os
 
 
-
 def objects_from_file(path, cls_string, column_names=[], **kwargs):
     """Load a BED file and return a list of Bed objects""
     Args:
@@ -210,7 +209,6 @@ def annotate_cnvs(tad_dict, cnv_dict):
                     annotated_cnvs.append(cnv_dict[chrom].pop(0))
             cnv_dict[chrom] = cnv_queue + cnv_dict[chrom]
         annotated_cnvs.extend(cnv_dict[chrom])
-
     return create_chr_dictionary_from_beds(annotated_cnvs)
 
 

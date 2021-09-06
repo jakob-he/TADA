@@ -32,7 +32,6 @@ def annotate(cfg):
             tads = pickle.load(annotated_tads)
     else:
         tads = annotate_tads.annotate(cfg)
-
     # for each set of cnvs in the config file
     # read them into a dict with chromosomes as keys
     # and annotate each CNVs according to the TAD environment
@@ -43,7 +42,6 @@ def annotate(cfg):
         # annotate CNVS
         print(f'Annotate {cnvs} CNVs..')
         annotated_cnvs[cnvs] = utils.annotate_cnvs(tads, cnv_dict)
-
     return annotated_cnvs
 
 
