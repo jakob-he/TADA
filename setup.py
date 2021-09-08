@@ -10,7 +10,7 @@ setup(name='tadacnv',
       keywords='CNV Pathogencity Annotation TADs',
       url='https://github.com/jakob-he/TADA',
       author='Jakob Hertzberg',
-      author_email='jakob.hertzberg@gmail.com',
+      author_email='hertzber@molgen.mpg.de',
       test_suite='tests',
       packages=find_packages(),
       entry_points={
@@ -31,5 +31,4 @@ setup(name='tadacnv',
         'networkx>=2.5',
         'scikit-learn>=0.24'
       ],
-      include_package_data=True,
-      zip_safe=False)
+      include_package_data=True)

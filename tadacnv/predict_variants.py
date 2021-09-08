@@ -4,6 +4,7 @@ import pathlib
 import pickle
 import numpy as np
 import yaml
+import pkg_resources
 
 # own libraries
 import tadacnv.annotate_tads as annotate_tads
@@ -21,6 +22,12 @@ def argparser():
     # parse inputs
     parser = argparse.ArgumentParser('Full classification between pathogenic and non pathogenic variants with variable features. Requires pretrained model. Run predict_variants -h for more details.')
     parser.add_argument('-c', '--config', default = 'config.yml', help='Path to the config file containing TAD,CNV and annotation locations.')
+    parser.add_argument('-d', '--default', action='store_true',
+                        help='Use default settings and annptations. This requires the variant path to be set via -v!')
+    parser.add_argument(
+        '-v', '--variants', help='Path to the CNV bed/vcf-file. Only usable in combination with the -d flag!')
+    parser.add_argument(
+        '-t', '--type', help='Type of variant (Either DEL or DUP). Only usable in combination with the -d flag!')
     parser.add_argument('-o','--output', default='./',help='Output location.')
     return parser.parse_args()
 
@@ -70,9 +77,31 @@ def predict(cfg, output):
 def main():
     args = argparser()
 
-    # read config file
-    with pathlib.Path(args.config).open() as ymlfile:
-        cfg = yaml.load(ymlfile, Loader=yaml.Loader)
+    if args.default:
+        # depending on the variant type get config file from package
+        if args.type.upper() == 'DEL':
+            cfg_stream = pathlib.Path(pkg_resources.resource_filename(
+                __name__, 'data/config_del_default.yml'))
+        elif args.type.upper() == 'DUP':
+            cfg_stream = pathlib.Path(pkg_resources.resource_filename(
+                __name__, 'data/config_dup_default.yml'))
+        else:
+            print(
+                f'{args.type} is not supported. Only DEL and DUP are viable options!')
+            return
+        cfg = yaml.load(cfg_stream.open(), Loader=yaml.Loader)
+        cfg['CNVS']['RAW']['TEST'] = args.variants
+        # iterate through cfg entires and set path to package path
+        for key_1 in cfg:
+            if key_1 == "PRETRAINED_MODEL":
+                cfg[key_1] = cfg_stream.parent / cfg[key_1]
+            elif key_1 not in ['CNVS', 'FEATURES', 'KWARGS', 'CLASSIFIER']:
+                for key_2 in cfg[key_1]:
+                    cfg[key_1][key_2] = cfg_stream.parent / cfg[key_1][key_2]
+    else:
+        # read config file
+        with pathlib.Path(args.config).open() as ymlfile:
+            cfg = yaml.load(ymlfile, Loader=yaml.Loader)
 
     output = pathlib.Path(args.output)
 
