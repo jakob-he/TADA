@@ -1,0 +1,33 @@
+TADS:
+  RAW: "Dixon_2015_stability_formatted_TADs.bed"
+  ANNOTATED: "Annotated_Default_TADs.p"
+
+ANNOTATIONS:
+  GENES: "gnomad_genes_pli_loeuf_HI.bed"
+  EXONS: "HAVANA_exon.merged.bed.gz"
+  ENHANCERS: "fantom5_enhancer_phastcon_average.bed"
+  CTCF: "H1_hESC_CTCF_peaks_idr_optimal.bed"
+  DDG2P: "DDG2P_genes.bed"
+  POINT: "extracted_po_pairs.bed"
+
+CNVS:
+  RAW:
+    PATHOGENIC: "CLINVAR_GRCh37.deletions.pathogenic.likely_pathogenic.sorted.autosomes.unique.no_overlap.bed"
+    NON_PATHOGENIC: "CLINVAR_GRCh37.deletions.benign.sorted.autosomes.unique.no_overlap.bed"
+  ANNOTATED:
+    PATHOGENIC:
+    NON_PATHOGENIC:
+
+FEATURES: "extended"
+
+CLASSIFIER: "rf"
+
+KWARGS:
+  max_depth:  None
+  max_features: 'auto'
+  min_samples_leaf: 5
+  min_samples_split: 4
+  n_estimators: 500
+  oob_score: True
+
+PRETRAINED_MODEL: "rf_model_del.p"
