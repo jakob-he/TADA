@@ -1,7 +1,7 @@
 TADA
 ====
 
-.. image:: https://img.shields.io/badge/pypi-v1.0.1-blue
+.. image:: https://img.shields.io/badge/pypi-v1.0.2-blue
     :target: https://pypi.org/project/tadacnv/
 
 .. image:: https://img.shields.io/badge/published%20in-BioRxiv-red
