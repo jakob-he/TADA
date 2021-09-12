@@ -21,7 +21,7 @@ The TAD annotation (TADA) tools is designed to annotate CNVs based on functional
 Installation
 ------------
 
-TADA can be installed either by cloning our GitHub repository or directly via Pip. Before any installation we recommend creating a new conda environemnt with Python 3.6 to avoid any dependency issue::
+TADA can be installed either by cloning our GitHub repository or directly via Pip. Before any installation we recommend creating a new conda environment with Python 3.6 to avoid any dependency issue::
 
      conda create -n tada python=3.6
 
