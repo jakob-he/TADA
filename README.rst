@@ -4,7 +4,7 @@ TADA
 .. image:: https://img.shields.io/badge/pypi-v1.0.1-blue
     :target: https://pypi.org/project/tadacnv/
 
-.. image:: https://img.shields.io/badge/Published%20in-BioRxiv-red
+.. image:: https://img.shields.io/badge/published%20in-BioRxiv-red
     :target: https://www.biorxiv.org/content/10.1101/2020.06.30.180711v1
 
 
