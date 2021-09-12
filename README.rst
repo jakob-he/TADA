@@ -1,8 +1,12 @@
 TADA
 ====
 
-.. image:: https://img.shields.io/badge/pypi-v1.0.0-blue
+.. image:: https://img.shields.io/badge/pypi-v1.0.1-blue
     :target: https://pypi.org/project/tadacnv/
+
+.. image:: https://img.shields.io/badge/Published%20in-BioRxiv-red
+    :target: https://www.biorxiv.org/content/10.1101/2020.06.30.180711v1
+
 
 Introduction
 ------------
@@ -17,19 +21,43 @@ The TAD annotation (TADA) tools is designed to annotate CNVs based on functional
 Installation
 ------------
 
-- Install TADA via GitHub::
+TADA can be installed either by cloning our GitHub repository or directly via Pip. Before any installation we recommend creating a new conda environemnt with Python 3.6 to avoid any dependency issue::
+
+     conda create -n tada python=3.6
+
+Install TADA via **GitHub**::
 
      git clone https://github.com/jakob-he/TADA
-     python setup.py install
+     cd  TADA
+     pip install .
 
-- To ensure a successfull installtion a test protocol can be executed::
+(Optional) To ensure a successfull installtion a test protocol can be executed inside the TADA directory. This requires the tox python package.::
 
-      python setup.py test
+      pip install tox
+      tox
+      
+Install via **Pip**::
+
+      pip install tadacnv
+     
 
 Usage
 -----
 
-There are three use cases for TADA that can be executed using the command line:
+PyPi Installation
+*****************
+
+If TADA was installed directly via Pip no config files are needed to predict the pathogenicity of variants and annotate them with our default feature set. You only need a BED or VCF-file with deletions or duplications. **This only applies to our default features!** For user defined feature set the Github installation is required (see next section). To predict or annotate deletions (for duplication choose DUP instead of DEL) the following commands can be executed:
+
+.. code-block:: python
+
+    predict_variants -d -t DEL -v path_to_variants -o output_directory
+    annotate_cnvs -d -t DEL -v path_to_variants -o output_directory
+
+Github Installation
+*******************
+
+If TADA was installed by cloning the GitHub there are three use cases for TADA that can be executed using the command line:
 
 	* Annotation of CNVs for manual filtering
 	* Prediction of pathogenicity
@@ -72,7 +100,6 @@ The individual config file entries are described below:
       oob_score: True
 
     PRETRAINED_MODEL: "data/rf_model.p" (A pretrained model can be specified here. By default this points to the provided deletion or duplication model depnding on the config file.)
-
 
 Annotation of CNVs for Manual Filtering
 ***************************************
