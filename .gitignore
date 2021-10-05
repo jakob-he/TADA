@@ -9,3 +9,10 @@ data/*
 
 #Ignore the build in docs
 docs/build
+
+#Ignore precompiled test data
+tests/test_data/*.p
+tests/test_data/*.csv
+
+#Ignore config files in data
+tadasv/data/*.yml

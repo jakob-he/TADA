@@ -1,19 +1,24 @@
 TADS:
-  RAW: "tadacnv/data/Dixon_2015_stability_formatted_TADs.bed"
+  RAW: "tadasv/data/Dixon_2015_stability_formatted_TADs.bed"
   ANNOTATED:
 
 ANNOTATIONS:
-  GENES: "tadacnv/data/gnomad_genes_pli_loeuf_HI.bed"
-  EXONS: "tadacnv/data/HAVANA_exon.merged.bed.gz"
-  ENHANCERS: "tadacnv/data/fantom5_enhancer_phastcon_average.bed"
-  CTCF: "tadacnv/data/H1_hESC_CTCF_peaks_idr_optimal.bed"
-  DDG2P: "tadacnv/data/DDG2P_genes.bed"
-  POINT: "tadacnv/data/extracted_po_pairs.bed"
+  GENES: "tadasv/data/gnomad_genes_pli_loeuf_HI.bed"
+  EXONS: "tadasv/data/HAVANA_exon.merged.bed.gz"
+  ENHANCERS: "tadasv/data/fantom5_enhancer_phastcon_average.bed"
+  CTCF: "tadasv/data/H1_hESC_CTCF_peaks_idr_optimal.bed"
+  DDG2P: "tadasv/data/DDG2P_genes.bed"
+  POINT: "tadasv/data/extracted_po_pairs.bed"
+  5_UTR: "tadasv/data/5_utr.bed"
+  3_UTR: "tadasv/data/3_utr.bed"
+  STOP: "tadasv/data/stop_codon.bed"
+  START: "tadasv/data/start_codon.bed"
 
-CNVS:
+
+SVS:
   RAW:
-    TEST_PATHOGENIC: "tests/test_data/test_cnvs_patho.bed"
-    TEST_NON_PATHOGENIC: tests/test_data/test_cnvs_nonpatho.bed
+    TEST_PATHOGENIC: "tests/test_data/test_svs_patho.bed"
+    TEST_NON_PATHOGENIC: tests/test_data/test_svs_nonpatho.bed
   ANNOTATED:
 
 
