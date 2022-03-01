@@ -4,8 +4,8 @@ TADA
 .. image:: https://img.shields.io/badge/pypi-v1.0.2-blue
     :target: https://pypi.org/project/tadacnv/
 
-.. image:: https://img.shields.io/badge/published%20in-BioRxiv-red
-    :target: https://www.biorxiv.org/content/10.1101/2020.06.30.180711v1
+.. image:: https://img.shields.io/badge/published%20in-GenomeBiology-green
+    :target: https://genomebiology.biomedcentral.com/articles/10.1186/s13059-022-02631-z
     
 .. image:: https://zenodo.org/badge/176484783.svg
    :target: https://zenodo.org/badge/latestdoi/176484783
